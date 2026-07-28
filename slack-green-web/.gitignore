@@ -4,3 +4,6 @@ node_modules/
 .env
 .env.local
 *.log
+
+# 실제 키를 채워 쓰는 로컬 전용 파일 (커밋 금지)
+DEPLOY-CHECKLIST.md
