@@ -1,0 +1,117 @@
+:root {
+  --bg: #0b0f14;
+  --surface: #121821;
+  --border: #26303d;
+  --text: #e7edf3;
+  --muted: #9aa7b5;
+  --green: #2eb67d;
+  --danger: #e5534b;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  width: 320px;
+  margin: 0;
+  padding: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Noto Sans KR", sans-serif;
+  font-size: 14px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgba(46, 182, 125, 0.2);
+}
+.list {
+  display: grid;
+  gap: 8px;
+}
+.ws {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.ws .name {
+  font-weight: 600;
+}
+.ws .url {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ws button {
+  border: 0;
+  background: var(--green);
+  color: #06231a;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.ws button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 20px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+}
+.status {
+  margin-top: 10px;
+  font-size: 13px;
+  min-height: 18px;
+}
+.status.ok {
+  color: var(--green);
+}
+.status.err {
+  color: var(--danger);
+}
+.settings {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.settings summary {
+  color: var(--muted);
+  cursor: pointer;
+}
+.settings label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 10px 0 4px;
+}
+.settings input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+}
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+.hint a {
+  color: var(--green);
+}

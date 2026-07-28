@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "AlwaysGreen Connector",
+  "version": "0.1.0",
+  "description": "현재 로그인된 Slack 워크스페이스를 클릭 한 번에 AlwaysGreen에 연결합니다.",
+  "permissions": ["cookies", "storage", "activeTab"],
+  "host_permissions": [
+    "https://*.slack.com/",
+    "http://localhost:3000/",
+    "https://YOUR-APP-DOMAIN.com/"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://app.slack.com/*", "https://*.slack.com/*"],
+      "js": ["src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "AlwaysGreen",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

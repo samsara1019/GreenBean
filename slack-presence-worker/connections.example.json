@@ -1,0 +1,15 @@
+[
+  {
+    "id": "conn_1",
+    "teamName": "My Workspace",
+    "xoxc": "xoxc-REPLACE-with-web-client-token",
+    "xoxd": "xoxd-REPLACE-with-d-cookie-value",
+    "enabled": true,
+    "schedule": {
+      "timezone": "Asia/Seoul",
+      "days": [1, 2, 3, 4, 5],
+      "start": "09:00",
+      "end": "18:00"
+    }
+  }
+]

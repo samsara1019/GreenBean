@@ -1,0 +1,18 @@
+{
+  "name": "slack-presence-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Phase 1 core worker — keep Slack presence active via a persistent RTM websocket + activity ping, driven by per-user schedules.",
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node --check src/index.js && node --check src/slackClient.js && node --check src/PresenceKeeper.js && node --check src/KeeperManager.js && node --check src/schedule.js && node --check src/store.js && node --check src/logger.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

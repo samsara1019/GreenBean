@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>AlwaysGreen</title>
+  </head>
+  <body>
+    <div class="head">
+      <span class="dot"></span>
+      <strong>AlwaysGreen</strong>
+    </div>
+
+    <div id="workspaces" class="list">
+      <div class="empty">불러오는 중…</div>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <details class="settings">
+      <summary>설정</summary>
+      <label for="apiBase">서버 주소</label>
+      <input id="apiBase" type="text" placeholder="http://localhost:3000" />
+      <p class="hint">
+        연결된 워크스페이스의 근무시간은
+        <a id="dashLink" href="#" target="_blank">대시보드</a>에서 조정하세요.
+      </p>
+    </details>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
