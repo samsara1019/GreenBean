@@ -80,6 +80,15 @@ export async function listConnections(userId) {
 // 확장에서 같은 워크스페이스를 다시 연결하면(토큰 만료 재인증 등) 새 행을 만들지
 // 않고 기존 행의 토큰을 갱신하고 status를 pending으로 되살린다 → 중복 방지 +
 // 워커가 재인증을 자동 감지.
+// 사용자당 연결 가능한 워크스페이스 최대 개수.
+export const MAX_CONNECTIONS = 3;
+
+function limitError() {
+  const e = new Error(`워크스페이스는 최대 ${MAX_CONNECTIONS}개까지 연결할 수 있습니다.`);
+  e.code = "LIMIT";
+  return e;
+}
+
 export async function createConnection(userId, { teamName, xoxc, xoxd, schedule }) {
   const name = teamName || "My Workspace";
   const tokenPatch = {
@@ -111,6 +120,14 @@ export async function createConnection(userId, { teamName, xoxc, xoxd, schedule 
       return toPublic(data);
     }
 
+    // 새 연결 → 개수 제한 검사 (기존 워크스페이스 갱신은 위에서 이미 return됨).
+    const { count, error: cntErr } = await supabase
+      .from("connections")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    if (cntErr) throw cntErr;
+    if ((count || 0) >= MAX_CONNECTIONS) throw limitError();
+
     const row = newConnectionRow(userId, name, tokenPatch, schedule);
     const { data, error } = await supabase.from("connections").insert(row).select().single();
     if (error) throw error;
@@ -124,6 +141,9 @@ export async function createConnection(userId, { teamName, xoxc, xoxd, schedule 
     Object.assign(existing, tokenPatch, schedule ? { schedule } : {});
     await fileWriteAll(rows);
     return toPublic(existing);
+  }
+  if (rows.filter((r) => r.user_id === userId).length >= MAX_CONNECTIONS) {
+    throw limitError();
   }
   const row = newConnectionRow(userId, name, tokenPatch, schedule);
   rows.push(row);

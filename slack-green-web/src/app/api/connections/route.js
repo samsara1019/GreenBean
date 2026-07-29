@@ -23,11 +23,19 @@ export async function POST(request) {
     return NextResponse.json({ error: "xoxc, xoxd는 필수입니다." }, { status: 400 });
   }
 
-  const created = await createConnection(userId, {
-    teamName: body.teamName,
-    xoxc: body.xoxc,
-    xoxd: body.xoxd,
-    schedule: body.schedule,
-  });
-  return NextResponse.json({ item: created }, { status: 201 });
+  try {
+    const created = await createConnection(userId, {
+      teamName: body.teamName,
+      xoxc: body.xoxc,
+      xoxd: body.xoxd,
+      schedule: body.schedule,
+    });
+    return NextResponse.json({ item: created }, { status: 201 });
+  } catch (e) {
+    // 개수 제한 초과 → 403
+    if (e.code === "LIMIT") {
+      return NextResponse.json({ error: e.message }, { status: 403 });
+    }
+    throw e;
+  }
 }
