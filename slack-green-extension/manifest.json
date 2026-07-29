@@ -6,8 +6,7 @@
   "permissions": ["cookies", "storage", "activeTab"],
   "host_permissions": [
     "https://*.slack.com/",
-    "http://localhost:3000/",
-    "https://YOUR-APP-DOMAIN.com/"
+    "https://green-bean-nu.vercel.app/"
   ],
   "background": {
     "service_worker": "src/background.js"

@@ -3,6 +3,11 @@ const statusEl = document.getElementById("status");
 const apiInput = document.getElementById("apiBase");
 const dashLink = document.getElementById("dashLink");
 
+// background.js의 API_DEFAULT와 반드시 같은 값. 다르면 팝업이 보여주는 주소와 실제
+// 요청이 가는 주소가 어긋나고, manifest host_permissions에 없는 주소가 저장되면
+// 연결이 실패한다.
+const API_DEFAULT = "https://green-bean-nu.vercel.app";
+
 const DEFAULT_SCHEDULE = {
   timezone: "Asia/Seoul",
   days: [1, 2, 3, 4, 5],
@@ -12,7 +17,7 @@ const DEFAULT_SCHEDULE = {
 
 async function init() {
   const { apiBase } = await chrome.storage.sync.get("apiBase");
-  const base = apiBase || "http://localhost:3000";
+  const base = apiBase || API_DEFAULT;
   apiInput.value = base;
   dashLink.href = `${base.replace(/\/$/, "")}/dashboard`;
 

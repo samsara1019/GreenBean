@@ -6,7 +6,7 @@
 // credentials:"include"로 웹앱 세션 쿠키를 함께 보내므로, 웹앱에 Supabase Auth가
 // 붙으면 자동으로 "그 로그인한 사용자"의 연결로 저장된다.
 
-const API_DEFAULT = "http://localhost:3000";
+const API_DEFAULT = "https://green-bean-nu.vercel.app";
 
 async function getApiBase() {
   const { apiBase } = await chrome.storage.sync.get("apiBase");
