@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-// 외부 결제 페이지(Groble 등). 설정돼 있으면 구독 버튼이 이 링크로 나간다.
-// ⚠️ 외부 결제는 완료 신호가 앱으로 돌아오지 않는다 — 결제해도 구독 상태는
-// 자동으로 active 가 되지 않으므로 별도 활성화 경로가 필요하다.
+// Groble 결제 페이지. 구독 버튼이 ?ref=<userId> 를 붙여 이 링크로 보낸다.
+// 활성화는 Groble 웹훅(/api/webhooks/groble)이 sellerReference 로 처리한다.
 const PAYMENT_URL = process.env.NEXT_PUBLIC_PAYMENT_URL;
+
+// 정기결제 해지 페이지(Groble 구매내역 등). 미설정이면 결제 페이지로 보낸다.
+// 정기결제는 사용자가 스스로 해지할 수단 제공이 필수다.
+const CANCEL_URL = process.env.NEXT_PUBLIC_CANCEL_URL;
 
 const DAYS = [
   { v: 1, l: "월" },
@@ -77,14 +80,27 @@ export default function DashboardClient({ email, devFallback }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 결제는 외부 결제 페이지(1회성)로만 진행한다. 앱 안에서 상태를 바꾸는 결제
-  // API는 없다 — 결제 확인 후 운영자가 수동으로 활성화한다.
+  // 결제는 Groble 결제 페이지에서 진행한다. 앱 안에는 상태를 바꾸는 결제 API가 없고
+  // (있으면 무인증으로 Pro를 켤 수 있다), Groble 웹훅이 구독을 활성화한다.
+  //
+  // ?ref=<userId> 가 핵심이다: 이 값이 웹훅의 sellerReference 로 돌아오므로 결제
+  // 이메일이 가입 이메일과 달라도 정확히 이 계정에 적용된다.
   function subscribe() {
     if (!PAYMENT_URL) {
       alert("결제 페이지가 아직 설정되지 않았습니다. 잠시 후 다시 시도해 주세요.");
       return;
     }
-    window.open(PAYMENT_URL, "_blank", "noopener,noreferrer");
+    let href = PAYMENT_URL;
+    if (sub?.userId) {
+      try {
+        const u = new URL(PAYMENT_URL);
+        u.searchParams.set("ref", sub.userId);
+        href = u.toString();
+      } catch {
+        /* PAYMENT_URL 형식이 이상하면 ref 없이라도 결제는 되게 둔다 */
+      }
+    }
+    window.open(href, "_blank", "noopener,noreferrer");
   }
 
   async function toggle(item) {
@@ -156,17 +172,15 @@ export default function DashboardClient({ email, devFallback }) {
 
       {sub && <SubBanner sub={sub} busy={subBusy} onSubscribe={subscribe} />}
 
-      {/* 외부 결제 + 수동 활성화 안내. 결제 전에 반드시 읽혀야 하는 내용이라
-          버튼 옆에 상시 노출한다. */}
+      {/* 결제 안내. 결제 전에 읽혀야 하는 내용이라 상시 노출한다. */}
       {PAYMENT_URL && sub && sub.status !== "active" && (
         <div className="notice" style={{ marginTop: 12 }}>
           <span aria-hidden="true">💳</span>
           <p style={{ margin: 0 }}>
-            결제는 외부 결제 페이지에서 진행됩니다.{" "}
-            <strong>가입하신 Google 계정과 같은 이메일로 결제</strong>해 주세요 —
-            결제가 확인되면 <strong>몇 분 안에 자동으로</strong> Pro가 켜집니다
-            (화면을 새로고침해 주세요). 이메일이 다르면 자동 적용이 되지 않아
-            확인 후 24시간 이내에 처리됩니다.
+            결제는 결제대행 서비스(Groble)에서 진행됩니다. 이 버튼으로 결제하면
+            계정이 자동으로 연결되어, 결제 확인 후 <strong>몇 분 안에</strong> Pro가
+            켜집니다(화면을 새로고침해 주세요). 월 단위 자동 갱신이며 언제든 해지할
+            수 있습니다.
           </p>
         </div>
       )}
@@ -285,10 +299,22 @@ function SubBanner({ sub, busy, onSubscribe }) {
           <div className="b-sub">
             다음 결제일{" "}
             <span className="mono">{fmtDate(sub.currentPeriodEnd)}</span> · 월 ₩
-            {sub.priceKrw.toLocaleString()}
+            {sub.priceKrw.toLocaleString()} 자동 갱신
           </div>
         </div>
-        <span className="chip chip-success">구독중</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span className="chip chip-success">구독중</span>
+          {/* 정기결제는 사용자가 스스로 해지할 수단이 있어야 한다. 결제·해지는
+              Groble이 관리하므로 그쪽으로 보낸다. */}
+          <a
+            className="btn btn-ghost"
+            href={CANCEL_URL || PAYMENT_URL || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            해지
+          </a>
+        </div>
       </div>
     );
   }

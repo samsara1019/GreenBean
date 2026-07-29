@@ -1,79 +1,54 @@
-// Groble 결제 웹훅 수신 → 구독 자동 활성화/해지.
+// Groble 결제 웹훅 수신 → 구독 자동 활성화/정지.
+// 스펙: https://www.groble.im/help/guides/webhook , /help/guides/webhook-events
 //
-// 인증: Groble은 서명 헤더를 주지 않으므로, 등록 URL 뒤에 붙인 비밀값으로 인증한다.
-//   https://<도메인>/api/webhooks/groble?key=<GROBLE_WEBHOOK_SECRET>
-// 비밀값이 설정되지 않았으면 **거부한다**(503). 예전 포트원 웹훅이 mock 모드에서
-// 서명 검증을 무조건 통과시켜 누구나 Pro를 켤 수 있었던 사고를 반복하지 않는다.
+// 인증 (문서 기준):
+//   signature = HEX(HMAC-SHA256(secret, "{timestamp}.{raw_body}"))
+//   헤더 X-Groble-Signature / X-Groble-Timestamp(초, ±5분) /
+//        X-Groble-Signature-Previous(시크릿 교체 후 24시간 동안만)
+//   → GROBLE_SIGNING_SECRET 로 검증한다.
 //
-// 페이로드 형태는 아직 확정되지 않았다(테스트 발송으로 확인 필요). 그래서:
-//   - 이벤트 종류/이메일을 여러 후보 필드에서 재귀적으로 찾는다
-//   - 무엇을 받았고 어떻게 판단했는지 payment_events 에 raw 째로 남긴다
-//   - 판단이 안 되면 applied=false 로 기록만 하고 200을 준다(재전송 폭주 방지)
-// 실제 페이로드를 확인한 뒤 아래 EVENT_HINTS / 이메일 추출을 좁히면 된다.
+//   URL 비밀값(?key=GROBLE_WEBHOOK_SECRET)도 폴백으로 남겨둔다. 서명 검증이 확실히
+//   동작하는 것을 확인하면 URL 키는 없애는 게 맞다(비밀값이 URL·로그에 남는다).
+//   비밀값이 하나도 없으면 503 — 예전 포트원 웹훅이 mock 모드에서 서명 검증을 무조건
+//   통과시켜 누구나 Pro를 켤 수 있었던 사고를 반복하지 않기 위한 fail-closed.
+//
+// 사용자 매칭:
+//   결제 링크에 `?ref=<user_id>` 를 붙이면 웹훅의 data.object.sellerReference 로
+//   그대로 돌아온다 → 이메일 추측 없이 정확히 매칭된다. 단 환불 계열 이벤트에는
+//   sellerReference 가 없으므로(문서 명시) buyer.email 로 폴백한다.
 
 import { NextResponse } from "next/server";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import {
   findUserIdByEmail,
+  getSubscription,
   recordPaymentEvent,
   markPaymentEventApplied,
   notePaymentEvent,
   grantProMonth,
   revokePro,
+  markPastDue,
 } from "../../../../lib/db.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// 페이로드 어딘가에 이 문자열이 있으면 해당 이벤트로 판단한다.
-const EVENT_HINTS = {
-  paid: ["paid", "payment.completed", "payment_completed", "결제 완료", "결제완료", "success"],
-  canceled: [
-    "cancel",
-    "canceled",
-    "cancelled",
-    "payment.cancelled",
-    "refund",
-    "결제 취소",
-    "결제취소",
-    "해지",
-  ],
+const TIMESTAMP_TOLERANCE_SEC = 300; // 문서: ±5분
+
+// 이벤트별 처리. "환불(즉시 종료)"과 "해지(다음 갱신만 중단)"를 구분하는 것이 핵심 —
+// 섞으면 사용자가 이미 결제한 잔여 기간을 잃는다.
+const EVENT_ACTIONS = {
+  "payment.completed": "grant", // 일반결제 완료
+  "subscription_payment.completed": "grant", // 정기결제 완료(첫 결제 + 갱신)
+  "subscription_payment.failed": "past_due", // 갱신 실패 → 유예 후 자동 정지
+  "payment.refunded": "revoke", // 일반결제 취소 완료 = 환불 → 즉시 종료
+  "subscription_payment.refunded": "revoke", // 정기결제 회차 환불 → 즉시 종료
+  "payment.cancel_requested": "none", // 취소 요청(확정 아님)
+  "subscription.cancel_requested": "none", // 해지 요청 → 잔여 기간 유지
+  "subscription.terminated": "none", // 해지 완료 → 갱신만 없어짐, 만료일에 자연 종료
 };
 
-const EMAIL_KEYS = ["email", "buyeremail", "customeremail", "purchaseremail", "useremail", "payeremail"];
-const ID_KEYS = ["paymentid", "payment_id", "orderid", "order_id", "transactionid", "merchantuid", "id"];
-
-// 중첩 객체를 훑어 키 이름이 후보에 맞는 첫 값을 찾는다.
-function findByKey(obj, candidates, depth = 0) {
-  if (!obj || typeof obj !== "object" || depth > 6) return null;
-  for (const [k, v] of Object.entries(obj)) {
-    const key = k.toLowerCase().replace(/[^a-z_]/g, "");
-    if (candidates.includes(key) && (typeof v === "string" || typeof v === "number")) {
-      return String(v);
-    }
-  }
-  for (const v of Object.values(obj)) {
-    if (v && typeof v === "object") {
-      const found = findByKey(v, candidates, depth + 1);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-// 키 이름을 못 믿을 때의 최후 수단: 값 중에서 이메일 형태를 찾는다.
-function findEmailAnywhere(raw) {
-  const m = JSON.stringify(raw).match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
-  return m ? m[0] : null;
-}
-
-function classify(raw) {
-  const blob = JSON.stringify(raw).toLowerCase();
-  // 취소를 먼저 본다 — "취소 완료" 페이로드에도 'paid' 문자열이 섞여 있을 수 있다.
-  if (EVENT_HINTS.canceled.some((h) => blob.includes(h.toLowerCase()))) return "canceled";
-  if (EVENT_HINTS.paid.some((h) => blob.includes(h.toLowerCase()))) return "paid";
-  return "unknown";
-}
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function safeEq(a, b) {
   const A = Buffer.from(String(a));
@@ -81,140 +56,166 @@ function safeEq(a, b) {
   return A.length === B.length && timingSafeEqual(A, B);
 }
 
-// Groble이 준 시크릿으로 오는 요청을 검증한다. 실제 전달 방식(문서 미확인)을 몰라서
-// 흔한 형태를 모두 시도한다:
-//   ① 헤더에 시크릿을 그대로 실어 보내는 방식
-//   ② 본문의 HMAC-SHA256 (hex 또는 base64), `sha256=` 접두사나 `v1=` 형태 포함
-// 어떤 헤더로 왔는지는 로그로 남겨서, 실제 형태를 확인한 뒤 하나로 좁힌다.
-function verifySigningSecret(rawText, headers, signingSecret) {
-  if (!signingSecret) return { ok: false, how: null, seen: [] };
+function verifySignature(rawText, headers, secret) {
+  if (!secret) return { ok: false, reason: "GROBLE_SIGNING_SECRET 미설정" };
+  const sig = headers.get("x-groble-signature");
+  const prev = headers.get("x-groble-signature-previous");
+  const ts = headers.get("x-groble-timestamp");
+  if (!sig || !ts) return { ok: false, reason: "서명/타임스탬프 헤더 없음" };
 
-  const seen = [];
-  const values = [];
-  for (const [name, value] of headers.entries()) {
-    const n = name.toLowerCase();
-    if (/(sign|signature|secret|token|hmac|groble)/.test(n)) {
-      seen.push(n);
-      values.push(value);
-    }
+  const tsNum = Number(ts);
+  if (!Number.isFinite(tsNum)) return { ok: false, reason: "타임스탬프 형식 오류" };
+  const skew = Math.abs(Math.floor(Date.now() / 1000) - tsNum);
+  if (skew > TIMESTAMP_TOLERANCE_SEC) {
+    // 재전송 공격 방지. 문서가 요구하는 검사다.
+    return { ok: false, reason: `타임스탬프 ±5분 초과(${skew}s)` };
   }
-  if (!values.length) return { ok: false, how: null, seen };
 
-  const hmacHex = createHmac("sha256", signingSecret).update(rawText).digest("hex");
-  const hmacB64 = createHmac("sha256", signingSecret).update(rawText).digest("base64");
+  const expected = createHmac("sha256", secret).update(`${ts}.${rawText}`).digest("hex");
+  if (safeEq(expected, sig)) return { ok: true, how: "signature" };
+  // 시크릿 교체 후 24시간: 우리가 아직 옛 시크릿을 들고 있으면 previous 와 맞는다.
+  if (prev && safeEq(expected, prev)) return { ok: true, how: "signature-previous" };
+  return { ok: false, reason: "서명 불일치" };
+}
 
-  for (const v of values) {
-    // "sha256=xxx", "t=123,v1=xxx" 같은 형태에서 값만 뽑아낸다.
-    const parts = String(v)
-      .split(/[,\s]+/)
-      .map((p) => (p.includes("=") ? p.slice(p.indexOf("=") + 1) : p))
-      .filter(Boolean);
-    for (const p of [v, ...parts]) {
-      if (safeEq(p, signingSecret)) return { ok: true, how: "plain-secret-header", seen };
-      if (safeEq(p, hmacHex)) return { ok: true, how: "hmac-sha256-hex", seen };
-      if (safeEq(p, hmacB64)) return { ok: true, how: "hmac-sha256-base64", seen };
-    }
-  }
-  return { ok: false, how: null, seen };
+// subscription.nextBillingDate 는 "2026-08-29" 처럼 날짜만 온다(KST 기준).
+// 그 날 결제가 일어나므로 만료일을 그 날짜 + 1일로 잡아 웹훅 지연 여유를 둔다.
+// 형식이 예상과 다르면 null → 호출부가 "+1개월" 폴백을 쓴다.
+function nextBillingEnd(dateStr) {
+  if (typeof dateStr !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const t = Date.parse(`${dateStr}T00:00:00+09:00`);
+  if (!Number.isFinite(t)) return null;
+  return new Date(t + 86_400_000).toISOString();
+}
+
+// 중첩 객체에서 이메일 형태를 찾는 최후 수단(문서에 없는 필드 배치 대비).
+function findEmailAnywhere(raw) {
+  const m = JSON.stringify(raw).match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+  return m ? m[0] : null;
 }
 
 export async function POST(request) {
-  const urlSecret = process.env.GROBLE_WEBHOOK_SECRET;
   const signingSecret = process.env.GROBLE_SIGNING_SECRET;
-  if (!urlSecret && !signingSecret) {
+  const urlSecret = process.env.GROBLE_WEBHOOK_SECRET;
+  if (!signingSecret && !urlSecret) {
     console.error("[groble] 비밀값 미설정 — 웹훅을 거부한다.");
     return NextResponse.json({ error: "webhook not configured" }, { status: 503 });
   }
 
   const rawText = await request.text();
 
-  // URL 비밀값 또는 Groble 서명 중 **하나라도** 맞으면 통과. 서명 방식을 아직
-  // 확정하지 못한 동안 결제가 조용히 실패하는 것을 막기 위한 이중 게이트다.
-  // 실제 형태를 확인한 뒤에는 서명 검증만 남기고 URL 키를 없애는 게 맞다.
-  const url = new URL(request.url);
-  const providedKey = url.searchParams.get("key") || request.headers.get("x-webhook-key");
+  const sig = verifySignature(rawText, request.headers, signingSecret);
+  const providedKey =
+    new URL(request.url).searchParams.get("key") || request.headers.get("x-webhook-key");
   const byUrlKey = Boolean(urlSecret) && providedKey != null && safeEq(providedKey, urlSecret);
-  const sig = verifySigningSecret(rawText, request.headers, signingSecret);
 
-  if (!byUrlKey && !sig.ok) {
-    console.warn(
-      `[groble] 인증 실패. urlKey=${providedKey ? "제공됨(불일치)" : "없음"} ` +
-        `서명후보헤더=[${sig.seen.join(", ") || "없음"}]`
-    );
+  if (!sig.ok && !byUrlKey) {
+    console.warn(`[groble] 인증 실패: ${sig.reason}, urlKey=${providedKey ? "불일치" : "없음"}`);
+    if (process.env.GROBLE_WEBHOOK_DEBUG === "1") {
+      // 무엇이 왔는지 SQL로 확인할 수 있게 남긴다. 구독에는 절대 반영하지 않는다
+      // (적용까지 하면 디버그를 켠 동안 누구나 Pro를 켤 수 있다).
+      const headers = {};
+      for (const [n, v] of request.headers.entries()) {
+        if (/^(cookie|authorization)$/i.test(n)) continue;
+        headers[n] = String(v).slice(0, 300);
+      }
+      await recordPaymentEvent({
+        eventKey: `debug:${createHash("sha256")
+          .update(rawText + Date.now())
+          .digest("hex")
+          .slice(0, 24)}`,
+        eventType: "debug_unauthorized",
+        raw: { _reason: sig.reason, _headers: headers, _body: rawText.slice(0, 4000) },
+        note: "인증 실패 — 디버그 기록(구독 미반영)",
+      }).catch((e) => console.error("[groble] 디버그 기록 실패:", e.message));
+    }
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  console.log(
-    `[groble] 인증 통과 (${byUrlKey ? "url-key" : sig.how}) ` +
-      `서명후보헤더=[${sig.seen.join(", ") || "없음"}]`
-  );
+
   let raw;
   try {
     raw = JSON.parse(rawText || "{}");
   } catch {
-    // JSON이 아니어도 형태 파악을 위해 기록은 남긴다.
     raw = { _nonJsonBody: rawText.slice(0, 2000) };
   }
 
-  const eventType = classify(raw);
-  const email = findByKey(raw, EMAIL_KEYS) || findEmailAnywhere(raw);
-  const paymentId = findByKey(raw, ID_KEYS);
-  const eventKey =
-    (paymentId ? `${eventType}:${paymentId}` : null) ||
-    `${eventType}:sha:${createHash("sha256").update(rawText).digest("hex").slice(0, 32)}`;
+  const eventType = raw?.type || "unknown";
+  const obj = raw?.data?.object || {};
+  const action = EVENT_ACTIONS[eventType] || "unknown";
 
-  // 토큰·카드정보가 섞일 수 있으므로 페이로드 전체를 콘솔에 찍지 않는다.
-  console.log(`[groble] event=${eventType} key=${eventKey} email=${email ? "found" : "none"}`);
+  // 중복 배송 차단. 문서가 X-Groble-Idempotency-Key 사용을 명시한다.
+  const eventKey =
+    request.headers.get("x-groble-idempotency-key") ||
+    raw?.id ||
+    `sha:${createHash("sha256").update(rawText).digest("hex").slice(0, 32)}`;
+
+  const ref = typeof obj.sellerReference === "string" ? obj.sellerReference : null;
+  const email = obj?.buyer?.email || findEmailAnywhere(raw);
+
+  console.log(
+    `[groble] ${eventType} action=${action} key=${eventKey} ` +
+      `auth=${sig.ok ? sig.how : "url-key"} ref=${ref ? "있음" : "없음"}`
+  );
 
   const { duplicate } = await recordPaymentEvent({
     eventKey,
     eventType,
     email,
     raw,
-    note: email ? null : "이메일을 찾지 못함",
+    note: action === "unknown" ? "처리 규칙 없는 이벤트" : null,
   });
-  if (duplicate) {
-    return NextResponse.json({ ok: true, duplicate: true, eventKey });
+  if (duplicate) return NextResponse.json({ ok: true, duplicate: true, eventKey });
+
+  if (action === "unknown") {
+    return NextResponse.json({ ok: true, applied: false, reason: "미지원 이벤트", eventType });
+  }
+  if (action === "none") {
+    // 해지 요청/완료, 취소 요청 — 자격에는 손대지 않는다. 갱신 결제 웹훅이 더 오지
+    // 않으므로 current_period_end 가 지나면 워커가 알아서 초록불을 끈다.
+    await markPaymentEventApplied(eventKey, {
+      note: "자격 변경 없음(잔여 기간 유지, 다음 갱신 없음)",
+    });
+    return NextResponse.json({ ok: true, applied: true, eventType, action });
   }
 
-  if (eventType === "unknown") {
-    return NextResponse.json({
-      ok: true,
-      applied: false,
-      reason: "이벤트 종류를 판단하지 못함 — payment_events.raw 확인 필요",
-      eventKey,
-    });
+  // --- 사용자 매칭: ref(sellerReference) 우선, 없으면 이메일 ---
+  let userId = null;
+  let how = null;
+  if (ref && UUID_RE.test(ref) && (await getSubscription(ref))) {
+    userId = ref;
+    how = "sellerReference";
   }
-  if (!email) {
-    return NextResponse.json({
-      ok: true,
-      applied: false,
-      reason: "결제자 이메일을 찾지 못함 — 수동 처리 필요",
-      eventKey,
-    });
+  if (!userId && email) {
+    userId = await findUserIdByEmail(email);
+    if (userId) how = "email";
   }
-
-  const userId = await findUserIdByEmail(email);
   if (!userId) {
-    // 결제 이메일 ≠ 가입 이메일. 사람이 개입해야 하므로 applied 는 false 로 둔다.
-    await notePaymentEvent(eventKey, `가입 계정 없음(${email}) — 수동 확인 필요`).catch(
-      () => {}
-    );
-    return NextResponse.json({
-      ok: true,
-      applied: false,
-      reason: "해당 이메일로 가입한 계정이 없음",
-      eventKey,
-    });
+    const reason = ref
+      ? `ref(${ref})와 이메일(${email || "없음"}) 모두 매칭 실패`
+      : `이메일(${email || "없음"}) 매칭 실패`;
+    await notePaymentEvent(eventKey, `${reason} — 수동 확인 필요`).catch(() => {});
+    return NextResponse.json({ ok: true, applied: false, reason, eventType });
   }
 
-  if (eventType === "paid") {
-    await grantProMonth(userId);
-  } else {
+  let note;
+  if (action === "grant") {
+    // Groble이 알려주는 다음 결제일을 그대로 이용 만료일로 쓴다. 날짜만 오므로(KST)
+    // 하루를 더해 둔다 — 갱신 웹훅이 몇 시간 늦어도 서비스가 끊기지 않게 하는 여유분.
+    const periodEndIso = nextBillingEnd(obj?.subscription?.nextBillingDate);
+    await grantProMonth(userId, { periodEndIso });
+    note =
+      `결제 완료 → Pro (매칭: ${how}, 만료: ` +
+      `${periodEndIso ? periodEndIso.slice(0, 10) + "(nextBillingDate+1d)" : "+1개월 폴백"})`;
+  } else if (action === "revoke") {
     await revokePro(userId);
+    note = `환불 → 즉시 종료 (매칭: ${how})`;
+  } else {
+    await markPastDue(userId);
+    note = `갱신 실패 → past_due 유예 (매칭: ${how})`;
   }
-  await markPaymentEventApplied(eventKey, { userId, note: `${eventType} 적용됨` });
+  await markPaymentEventApplied(eventKey, { userId, note });
 
-  return NextResponse.json({ ok: true, applied: true, eventType, eventKey });
+  return NextResponse.json({ ok: true, applied: true, eventType, action, eventKey });
 }
 
 // Groble이 등록 검증용으로 GET을 때릴 수 있어 200을 준다(URL 비밀값 확인은 하되).

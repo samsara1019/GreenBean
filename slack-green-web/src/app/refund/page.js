@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BUSINESS } from "../../lib/business.js";
+import { BUSINESS, businessLine, contactLine } from "../../lib/business.js";
 
 export const metadata = {
   title: "환불정책 — Green Bean",
@@ -45,16 +45,16 @@ export default function RefundPage() {
           개시 사실 및 제한 사유를 사전에 고지합니다.
         </p>
 
-        <h2 className="t-h2">3. 이용기간 종료</h2>
+        <h2 className="t-h2">3. 정기결제 해지</h2>
         <ul>
           <li>
-            유료 이용권은 <strong>1개월 단위 1회성 결제</strong>이며 자동 갱신되지
-            않습니다. 따라서 별도의 해지 절차가 없고, 다시 결제하지 않으면 기간 만료와
-            함께 유료 이용이 자동으로 종료됩니다.
+            유료 구독은 <strong>월 단위로 자동 갱신</strong>됩니다. 대시보드의
+            &ldquo;해지&rdquo; 버튼으로 언제든 해지할 수 있으며, 해지하면 다음
+            결제주기부터 청구되지 않습니다.
           </li>
           <li>
-            이미 결제된 기간의 이용요금은 원칙적으로 환불되지 않으며, 만료일까지는
-            그대로 서비스를 이용할 수 있습니다.
+            이미 결제된 당해 주기의 이용요금은 원칙적으로 환불되지 않으며, 해지 후에도
+            해당 주기의 남은 기간 동안 서비스를 이용할 수 있습니다.
           </li>
         </ul>
 
@@ -89,10 +89,9 @@ export default function RefundPage() {
             <Link href="/privacy">개인정보처리방침</Link>
           </div>
           <div className="biz-info">
-            {BUSINESS.service} · {BUSINESS.company} · 대표 {BUSINESS.owner} ·
-            사업자등록번호 {BUSINESS.bizNo} · 통신판매업신고 {BUSINESS.mailOrderNo}
+            {businessLine()}
             <br />
-            {BUSINESS.address} · {BUSINESS.email} · {BUSINESS.phone}
+            {contactLine()}
           </div>
         </div>
       </footer>

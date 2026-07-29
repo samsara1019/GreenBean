@@ -364,19 +364,54 @@ export async function markPaymentEventApplied(eventKey, { userId, note } = {}) {
   }
 }
 
-// 결제 완료 → Pro 1개월. 기간이 남아 있으면 그 끝에서 연장한다(조기 결제 손해 방지).
-export async function grantProMonth(userId) {
+// 결제 완료 → Pro 활성화.
+//
+// periodEndIso 가 있으면 그 값을 쓴다 — Groble 웹훅이 실제 다음 결제일
+// (subscription.nextBillingDate)을 알려주므로, 우리가 "+1개월"로 추정하는 것보다
+// 정확하다(결제주기가 1개월이 아닐 수도 있다).
+// 없을 때만 폴백으로 1개월을 더한다. 기간이 남아 있으면 그 끝에서 연장한다
+// (조기 결제로 사용자가 손해 보지 않게).
+export async function grantProMonth(userId, { periodEndIso } = {}) {
   const sub = await getOrCreateSubscription(userId);
-  const base = sub.current_period_end
-    ? Math.max(new Date(sub.current_period_end).getTime(), Date.now())
-    : Date.now();
-  const end = new Date(base);
-  end.setMonth(end.getMonth() + 1);
+  let end;
+  if (periodEndIso) {
+    end = new Date(periodEndIso);
+  } else {
+    const base = sub.current_period_end
+      ? Math.max(new Date(sub.current_period_end).getTime(), Date.now())
+      : Date.now();
+    end = new Date(base);
+    end.setMonth(end.getMonth() + 1);
+  }
   return updateSubscription(userId, {
     plan: "pro",
     status: "active",
     current_period_end: end.toISOString(),
   });
+}
+
+// 구독 row를 조회한다(없으면 만들지 않고 null). 웹훅이 넘겨준 참조값(user_id)이
+// 실제 계정인지 확인할 때 쓴다 — 검증 없이 쓰면 엉뚱한 값으로 구독 row가 생긴다.
+export async function getSubscription(userId) {
+  if (!userId) return null;
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+  const subs = await subsReadAll();
+  return subs.find((s) => s.user_id === userId) || null;
+}
+
+// 갱신 결제 실패 → past_due. entitlement 가 3일 유예를 주므로 그 사이에 재시도가
+// 성공하면 끊김 없이 이어진다. 기간(current_period_end)은 건드리지 않는다.
+export async function markPastDue(userId) {
+  await getOrCreateSubscription(userId);
+  return updateSubscription(userId, { status: "past_due" });
 }
 
 // 결제 취소/환불 → 즉시 종료. 취소된 결제로 서비스가 계속 돌면 안 된다.

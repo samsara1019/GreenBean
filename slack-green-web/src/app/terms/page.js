@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BUSINESS } from "../../lib/business.js";
+import { BUSINESS, businessLine, contactLine } from "../../lib/business.js";
 
 export const metadata = {
   title: "이용약관 — Green Bean",
@@ -45,8 +45,8 @@ export default function TermsPage() {
             등록하여 상태 유지 대상으로 지정하는 것을 말합니다.
           </li>
           <li>
-            &ldquo;이용권&rdquo;이란 무료 체험 종료 후 유료로 서비스를 계속 이용하기
-            위해 1개월 단위로 결제하는 이용 권한을 말합니다. 자동 갱신되지 않습니다.
+            &ldquo;구독&rdquo;이란 무료 체험 종료 후 유료로 서비스를 계속 이용하는
+            월 단위 정기결제 계약을 말합니다.
           </li>
         </ul>
 
@@ -74,22 +74,20 @@ export default function TermsPage() {
         <ul>
           <li>가입 시 14일간 무료 체험이 제공되며, 체험 기간에는 결제가 발생하지 않습니다.</li>
           <li>
-            체험 종료 후 이용자가 결제하면 결제일로부터 1개월간 이용할 수 있습니다.
-            <strong> 자동 결제·자동 갱신은 이루어지지 않습니다.</strong> 계속 이용하려면
-            기간 만료 전후에 다시 결제해야 합니다.
+            체험 종료 후 이용자가 구독을 신청하면 <strong>월 정기결제</strong>가
+            이루어지며, 매 결제주기마다 자동으로 갱신·청구됩니다.
           </li>
           <li>
-            결제는 외부 결제 페이지(Groble)를 통해 처리되며, 서비스는 카드 정보를
+            결제는 결제대행 서비스(Groble)를 통해 처리되며, 서비스는 카드 정보를
             수집·보관하지 않습니다.
           </li>
           <li>
-            결제 시 <strong>가입한 계정과 동일한 이메일</strong>을 사용해야 하며, 결제
-            확인 후 24시간 이내에 이용권이 활성화됩니다. 이메일이 일치하지 않으면 적용
-            대상을 확인할 수 없어 활성화가 지연될 수 있습니다.
+            이용자는 언제든지 <strong>해지</strong>할 수 있습니다. 해지하면 다음
+            결제주기부터 청구되지 않으며, 이미 결제한 주기의 남은 기간은 그대로
+            이용할 수 있습니다.
           </li>
           <li>
-            자동 결제가 없으므로 별도의 해지 절차가 필요하지 않으며, 다시 결제하지
-            않으면 기간 만료와 함께 유료 이용이 자동으로 종료됩니다.
+            갱신 결제가 실패한 경우 일정 기간(3일) 유예 후 유료 기능이 정지됩니다.
           </li>
         </ul>
 
@@ -162,10 +160,9 @@ function LegalFooter() {
           <Link href="/privacy">개인정보처리방침</Link>
         </div>
         <div className="biz-info">
-          {BUSINESS.service} · {BUSINESS.company} · 대표 {BUSINESS.owner} ·
-          사업자등록번호 {BUSINESS.bizNo} · 통신판매업신고 {BUSINESS.mailOrderNo}
+          {businessLine()}
           <br />
-          {BUSINESS.address} · {BUSINESS.email} · {BUSINESS.phone}
+          {contactLine()}
         </div>
       </div>
     </footer>

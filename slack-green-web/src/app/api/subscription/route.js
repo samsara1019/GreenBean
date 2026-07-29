@@ -13,5 +13,8 @@ export async function GET() {
   const { userId, response } = await requireUserId();
   if (response) return response;
   const sub = await getOrCreateSubscription(userId);
-  return NextResponse.json(summarize(sub));
+  // userId 를 함께 반환한다: 결제 링크에 ?ref=<userId> 로 실어 보내면 Groble 웹훅이
+  // sellerReference 로 되돌려주므로, 결제 이메일 추측 없이 정확히 매칭된다.
+  // (본인 uid 이므로 노출돼도 무해하다 — 세션 쿠키로만 스코핑된다.)
+  return NextResponse.json({ ...summarize(sub), userId });
 }
