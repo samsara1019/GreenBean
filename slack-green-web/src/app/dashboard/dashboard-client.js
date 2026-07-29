@@ -38,6 +38,7 @@ export default function DashboardClient({ email, devFallback }) {
   const [showForm, setShowForm] = useState(false);
   const [sub, setSub] = useState(null);
   const [subBusy, setSubBusy] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   // 세션이 만료되면 API가 401을 준다 → 로그인으로 돌려보낸다.
   async function getJson(url, init) {
@@ -100,6 +101,15 @@ export default function DashboardClient({ email, devFallback }) {
     if (!confirm(`"${item.teamName}" 연결을 삭제할까요?`)) return;
     await getJson(`/api/connections/${item.id}`, { method: "DELETE" });
     refresh();
+  }
+
+  // EditForm이 호출. 성공하면 Response(ok), 실패하면 !ok Response, 401이면 null.
+  async function saveEdit(id, body) {
+    return getJson(`/api/connections/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
   }
 
   return (
@@ -166,8 +176,8 @@ export default function DashboardClient({ email, devFallback }) {
       ) : (
         <div className="conn-list">
           {items.map((item) => (
-            <div className="conn" key={item.id}>
-              <div className="meta">
+            <div key={item.id}>
+            <div className="conn"><div className="meta">
                 <span className="name">{item.teamName}</span>
                 <span className="sub">
                   {formatSchedule(item.schedule)} · 토큰{" "}
@@ -203,11 +213,31 @@ export default function DashboardClient({ email, devFallback }) {
                 />
                 <button
                   className="btn btn-sm btn-ghost"
+                  onClick={() =>
+                    setEditingId((id) => (id === item.id ? null : item.id))
+                  }
+                >
+                  {editingId === item.id ? "취소" : "수정"}
+                </button>
+                <button
+                  className="btn btn-sm btn-ghost"
                   onClick={() => remove(item)}
                 >
                   삭제
                 </button>
               </div>
+            </div>
+            {editingId === item.id && (
+              <EditForm
+                connection={item}
+                onSave={saveEdit}
+                onSaved={() => {
+                  setEditingId(null);
+                  refresh();
+                }}
+                onCancel={() => setEditingId(null)}
+              />
+            )}
             </div>
           ))}
         </div>
@@ -379,6 +409,32 @@ function AddForm({ onCreated }) {
         />
       </div>
 
+      <ScheduleFields
+        tz={tz}
+        setTz={setTz}
+        days={days}
+        toggleDay={toggleDay}
+        start={start}
+        setStart={setStart}
+        end={end}
+        setEnd={setEnd}
+      />
+
+      {err && <div className="error-text">{err}</div>}
+
+      <div>
+        <button className="btn btn-primary" disabled={busy} type="submit">
+          {busy ? "연결 중…" : "연결하기"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// 타임존 / 요일 / 시작·종료 시간 편집 UI (연결 추가·수정에서 공용).
+function ScheduleFields({ tz, setTz, days, toggleDay, start, setStart, end, setEnd }) {
+  return (
+    <>
       <div className="row">
         <div className="field">
           <label htmlFor="tz">타임존</label>
@@ -427,12 +483,93 @@ function AddForm({ onCreated }) {
           />
         </div>
       </div>
+    </>
+  );
+}
+
+// 기존 연결의 이름·근무시간 수정. 토큰은 여기서 안 바꾼다(확장으로 재연결).
+function EditForm({ connection, onSave, onSaved, onCancel }) {
+  const sch = connection.schedule || {};
+  const [teamName, setTeamName] = useState(connection.teamName || "");
+  const [tz, setTz] = useState(sch.timezone || "Asia/Seoul");
+  const [start, setStart] = useState(sch.start || "09:00");
+  const [end, setEnd] = useState(sch.end || "18:00");
+  const [days, setDays] = useState(sch.days || [1, 2, 3, 4, 5]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  function toggleDay(v) {
+    setDays((d) => (d.includes(v) ? d.filter((x) => x !== v) : [...d, v]));
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    if (days.length === 0) {
+      setErr("근무 요일을 하나 이상 선택하세요.");
+      return;
+    }
+    setBusy(true);
+    setErr("");
+    const res = await onSave(connection.id, {
+      teamName: teamName.trim() || connection.teamName,
+      schedule: { timezone: tz, days, start, end },
+    });
+    setBusy(false);
+    if (!res) return; // 401 → 로그인으로 이동됨
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setErr(d.error || "저장에 실패했습니다.");
+      return;
+    }
+    onSaved();
+  }
+
+  return (
+    <form className="form" onSubmit={submit} style={{ marginTop: 8 }}>
+      <div className="form-head">
+        <h3>워크스페이스 수정</h3>
+        <p className="muted" style={{ margin: 0 }}>
+          이름과 근무시간을 변경합니다. 토큰을 다시 연결하려면{" "}
+          <a href="/guide">확장</a>을 사용하세요.
+        </p>
+      </div>
+
+      <div className="field">
+        <label htmlFor={`name-${connection.id}`}>워크스페이스 이름</label>
+        <input
+          id={`name-${connection.id}`}
+          className="input"
+          type="text"
+          value={teamName}
+          onChange={(e) => setTeamName(e.target.value)}
+          placeholder="예: 우리회사"
+        />
+      </div>
+
+      <ScheduleFields
+        tz={tz}
+        setTz={setTz}
+        days={days}
+        toggleDay={toggleDay}
+        start={start}
+        setStart={setStart}
+        end={end}
+        setEnd={setEnd}
+      />
 
       {err && <div className="error-text">{err}</div>}
 
-      <div>
+      <div style={{ display: "flex", gap: "var(--space-sm)" }}>
         <button className="btn btn-primary" disabled={busy} type="submit">
-          {busy ? "연결 중…" : "연결하기"}
+          {busy ? "저장 중…" : "저장"}
+        </button>
+        <button
+          className="btn btn-ghost"
+          type="button"
+          onClick={onCancel}
+          disabled={busy}
+        >
+          취소
         </button>
       </div>
     </form>
