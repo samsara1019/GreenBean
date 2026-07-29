@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "AlwaysGreen Connector",
+  "name": "Green Bean Connector",
   "version": "0.1.0",
-  "description": "현재 로그인된 Slack 워크스페이스를 클릭 한 번에 AlwaysGreen에 연결합니다.",
+  "description": "현재 로그인된 Slack 워크스페이스를 클릭 한 번에 Green Bean에 연결합니다.",
   "permissions": ["cookies", "storage", "activeTab"],
   "host_permissions": [
     "https://*.slack.com/",
@@ -20,7 +20,7 @@
   ],
   "action": {
     "default_popup": "src/popup.html",
-    "default_title": "AlwaysGreen",
+    "default_title": "Green Bean",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

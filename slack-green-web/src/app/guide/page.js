@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "설치 가이드 — AlwaysGreen",
+  title: "설치 가이드 — Green Bean",
   description: "브라우저 확장을 설치하고 Slack 워크스페이스를 연결하는 방법.",
 };
 
@@ -10,7 +10,7 @@ const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "";
 const STEPS = [
   {
     title: "브라우저 확장 설치",
-    body: "Chrome 웹스토어에서 AlwaysGreen 확장을 설치합니다. Edge·네이버 웨일에서도 그대로 설치됩니다.",
+    body: "Chrome 웹스토어에서 Green Bean 확장을 설치합니다. Edge·네이버 웨일에서도 그대로 설치됩니다.",
     cta: true,
   },
   {
@@ -33,7 +33,7 @@ export default function GuidePage() {
       <header className="container">
         <nav className="nav">
           <Link className="brand" href="/">
-            <span className="dot" /> AlwaysGreen
+            <span className="dot" /> Green Bean
           </Link>
           <Link className="btn btn-secondary btn-sm" href="/dashboard">
             대시보드
@@ -169,7 +169,7 @@ export default function GuidePage() {
 
       <footer>
         <div className="container">
-          © 2026 AlwaysGreen · Slack은 Slack Technologies, Inc.의 상표입니다.
+          © 2026 Green Bean · Slack은 Slack Technologies, Inc.의 상표입니다.
         </div>
       </footer>
     </>

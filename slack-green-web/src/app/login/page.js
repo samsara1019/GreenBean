@@ -41,7 +41,7 @@ function LoginCard() {
     <div className="auth-wrap">
       <div className="auth-card">
         <Link className="brand" href="/">
-          <span className="dot" /> AlwaysGreen
+          <span className="dot" /> Green Bean
         </Link>
 
         <div className="auth-head">

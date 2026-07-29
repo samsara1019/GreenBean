@@ -41,7 +41,7 @@ async function handle(request) {
       paymentId,
       billingKey: sub.billingKey,
       amountKrw: PLAN_PRICE_KRW,
-      orderName: "AlwaysGreen Pro (월 구독 갱신)",
+      orderName: "Green Bean Pro (월 구독 갱신)",
       customer: { id: sub.userId },
     });
 

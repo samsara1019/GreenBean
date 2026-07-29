@@ -116,7 +116,7 @@ export default function DashboardClient({ email, devFallback }) {
     <div className="dash container">
       <div className="dash-head">
         <Link className="brand" href="/">
-          <span className="dot" /> AlwaysGreen
+          <span className="dot" /> Green Bean
         </Link>
         <div className="dash-actions">
           <span className="account" title={email}>

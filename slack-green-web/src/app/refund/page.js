@@ -2,8 +2,8 @@ import Link from "next/link";
 import { BUSINESS } from "../../lib/business.js";
 
 export const metadata = {
-  title: "환불정책 — AlwaysGreen",
-  description: "AlwaysGreen 구독 청약철회 및 환불 정책.",
+  title: "환불정책 — Green Bean",
+  description: "Green Bean 구독 청약철회 및 환불 정책.",
 };
 
 const EFFECTIVE_DATE = "2026-07-28";
@@ -14,7 +14,7 @@ export default function RefundPage() {
       <header className="container">
         <nav className="nav">
           <Link className="brand" href="/">
-            <span className="dot" /> AlwaysGreen
+            <span className="dot" /> Green Bean
           </Link>
           <Link className="btn btn-secondary btn-sm" href="/">
             홈

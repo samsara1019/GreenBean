@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "개인정보처리방침 — AlwaysGreen",
-  description: "AlwaysGreen이 수집·이용·보관하는 정보와 그 처리 방식.",
+  title: "개인정보처리방침 — Green Bean",
+  description: "Green Bean이 수집·이용·보관하는 정보와 그 처리 방식.",
 };
 
 // TODO(prod): 아래 연락처와 사업자 정보를 실제 값으로 교체할 것.
@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       <header className="container">
         <nav className="nav">
           <Link className="brand" href="/">
-            <span className="dot" /> AlwaysGreen
+            <span className="dot" /> Green Bean
           </Link>
           <Link className="btn btn-secondary btn-sm" href="/">
             홈
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          AlwaysGreen(이하 &ldquo;서비스&rdquo;)은 이용자가 근무시간 동안 Slack
+          Green Bean(이하 &ldquo;서비스&rdquo;)은 이용자가 근무시간 동안 Slack
           상태를 활성으로 유지할 수 있도록 돕는 도구입니다. 본 방침은 서비스가
           어떤 정보를 수집하고 어떻게 처리하는지 설명합니다. 본 서비스는 Slack
           Technologies, Inc.와 무관하며 제휴·보증 관계가 없습니다.
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
 
         <h2 className="t-h2">3. 브라우저 확장이 접근하는 정보</h2>
         <p>
-          AlwaysGreen 브라우저 확장은 이용자가 직접 실행(아이콘 클릭)할 때만
+          Green Bean 브라우저 확장은 이용자가 직접 실행(아이콘 클릭)할 때만
           동작하며, Slack 웹 페이지의 로컬 저장소에서 워크스페이스 토큰을, 브라우저
           쿠키에서 <code>d</code> 세션 값을 읽어 서비스 서버로 안전하게(HTTPS)
           전송합니다. 이 값들은 이용자가 명시적으로 [연결]을 눌렀을 때만
@@ -146,7 +146,7 @@ export default function PrivacyPage() {
 
       <footer>
         <div className="container">
-          © 2026 AlwaysGreen · <Link href="/">홈</Link> ·{" "}
+          © 2026 Green Bean · <Link href="/">홈</Link> ·{" "}
           <Link href="/guide">설치 가이드</Link>
         </div>
       </footer>

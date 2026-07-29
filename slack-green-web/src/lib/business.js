@@ -1,7 +1,7 @@
 // ⚠️ TODO(prod): 사업자등록 후 실제 값으로 교체할 것.
 // 전자상거래법상 아래 정보는 사이트에 표기 의무가 있다(footer 등).
 export const BUSINESS = {
-  service: "AlwaysGreen",
+  service: "Green Bean",
   company: "(주)○○○ 또는 상호",
   owner: "대표자명",
   bizNo: "000-00-00000", // 사업자등록번호

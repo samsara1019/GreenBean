@@ -25,7 +25,7 @@ export async function POST(request) {
     paymentId,
     billingKey,
     amountKrw: PLAN_PRICE_KRW,
-    orderName: "AlwaysGreen Pro (월 구독)",
+    orderName: "Green Bean Pro (월 구독)",
     customer: { id: userId },
   });
 

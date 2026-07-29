@@ -1,7 +1,7 @@
 # slack-green-extension (Phase 2 — 토큰 자동 추출)
 
 로그인된 Slack 웹에서 워크스페이스 자격증명을 **클릭 한 번**에 추출해
-AlwaysGreen 서버로 연결하는 Chrome 확장 (Manifest V3).
+Green Bean 서버로 연결하는 Chrome 확장 (Manifest V3).
 
 ## 왜 확장이 필요한가 (기술적 이유)
 

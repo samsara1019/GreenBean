@@ -1,6 +1,6 @@
 // 백그라운드 서비스 워커.
 //  1) HttpOnly인 `d` 쿠키를 chrome.cookies API로 읽는다 (JS로는 불가능한 부분).
-//  2) 콘텐츠 스크립트가 넘긴 xoxc + 이 쿠키를 합쳐 AlwaysGreen API로 전송한다.
+//  2) 콘텐츠 스크립트가 넘긴 xoxc + 이 쿠키를 합쳐 Green Bean API로 전송한다.
 //
 // host_permissions 덕분에 확장에서의 크로스오리진 fetch는 CORS 제약을 받지 않는다.
 // credentials:"include"로 웹앱 세션 쿠키를 함께 보내므로, 웹앱에 Supabase Auth가

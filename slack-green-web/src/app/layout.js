@@ -23,7 +23,7 @@ const firaCode = Fira_Code({
 });
 
 export const metadata = {
-  title: "AlwaysGreen — 자리를 비워도 초록불 유지",
+  title: "Green Bean — 자리를 비워도 초록불 유지",
   description:
     "PC를 꺼도 Slack 상태를 근무시간에 맞춰 자동으로 초록불(활성)로 유지해주는 서비스.",
 };

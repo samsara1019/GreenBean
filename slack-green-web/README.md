@@ -1,6 +1,6 @@
 # slack-green-web (랜딩 + 대시보드)
 
-AlwaysGreen 웹앱. Next.js(App Router) 기반. 랜딩페이지 + 대시보드 + 연결 관리 API.
+Green Bean 웹앱. Next.js(App Router) 기반. 랜딩페이지 + 대시보드 + 연결 관리 API.
 
 ## 로컬 실행 (세팅 0으로 바로)
 

@@ -74,7 +74,7 @@ export default function Landing() {
       <header className="container">
         <nav className="nav">
           <div className="brand">
-            <span className="dot" /> AlwaysGreen
+            <span className="dot" /> Green Bean
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <a className="btn btn-ghost" href="#pricing">
@@ -115,7 +115,7 @@ export default function Landing() {
 
         {/* FEATURES */}
         <section id="features">
-          <h2 className="section-title">왜 AlwaysGreen인가</h2>
+          <h2 className="section-title">왜 Green Bean인가</h2>
           <p className="section-sub">
             상태 하나 때문에 마우스를 흔들거나 창을 켜두지 않아도 됩니다.
           </p>
@@ -241,7 +241,7 @@ export default function Landing() {
             {BUSINESS.address} · {BUSINESS.email} · {BUSINESS.phone}
           </div>
           <div style={{ marginTop: 8 }}>
-            © 2026 AlwaysGreen · Slack은 Slack Technologies, Inc.의 상표이며 본
+            © 2026 Green Bean · Slack은 Slack Technologies, Inc.의 상표이며 본
             서비스는 Slack과 제휴/보증 관계가 없습니다.
           </div>
         </div>

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { BUSINESS } from "../../lib/business.js";
 
 export const metadata = {
-  title: "이용약관 — AlwaysGreen",
-  description: "AlwaysGreen 서비스 이용약관.",
+  title: "이용약관 — Green Bean",
+  description: "Green Bean 서비스 이용약관.",
 };
 
 const EFFECTIVE_DATE = "2026-07-28";
@@ -14,7 +14,7 @@ export default function TermsPage() {
       <header className="container">
         <nav className="nav">
           <Link className="brand" href="/">
-            <span className="dot" /> AlwaysGreen
+            <span className="dot" /> Green Bean
           </Link>
           <Link className="btn btn-secondary btn-sm" href="/">
             홈
