@@ -45,7 +45,7 @@ popup.*        워크스페이스 목록 + [연결] 버튼 UI
 ## 아이콘 / 패키징
 
 - 아이콘은 `node tools/generate-icons.mjs`로 생성 (icons/icon{16,48,128}.png).
-- 스토어 업로드용 zip: `./build.sh` → `dist/alwaysgreen-extension-v<version>.zip`
+- 스토어 업로드용 zip: `./build.sh` → `dist/green-bean-extension-v<version>.zip`
   (개발 파일 제외하고 manifest·src·icons만 포함).
 
 ---
@@ -89,7 +89,7 @@ popup.*        워크스페이스 목록 + [연결] 버튼 UI
 
 ## 절차
 
-1. Developer Dashboard → **New item** → `dist/alwaysgreen-extension-vX.zip` 업로드
+1. Developer Dashboard → **New item** → `dist/green-bean-extension-vX.zip` 업로드
 2. **Store listing** 작성: 설명은 "근무시간 상태 관리 도구"로 프레이밍, 스크린샷 첨부
 3. **Privacy practices** 탭:
    - 단일 목적(single purpose) 서술

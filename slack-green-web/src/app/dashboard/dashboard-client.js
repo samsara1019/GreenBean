@@ -4,9 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-// 서버(db.js MAX_CONNECTIONS)와 동일하게 유지 — 여기선 UX용.
-const MAX_CONNECTIONS = 3;
-
 const DAYS = [
   { v: 1, l: "월" },
   { v: 2, l: "화" },
@@ -42,6 +39,10 @@ export default function DashboardClient({ email, devFallback }) {
   const [sub, setSub] = useState(null);
   const [subBusy, setSubBusy] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
+  // 플랜별 워크스페이스 한도 (구독 로드 후 확정). Free 1 / Pro 3.
+  const maxConn = sub?.maxConnections;
+  const atLimit = maxConn != null && items.length >= maxConn;
 
   // 세션이 만료되면 API가 401을 준다 → 로그인으로 돌려보낸다.
   async function getJson(url, init) {
@@ -137,10 +138,10 @@ export default function DashboardClient({ email, devFallback }) {
           <button
             className="btn btn-primary"
             onClick={() => setShowForm((s) => !s)}
-            disabled={!showForm && items.length >= MAX_CONNECTIONS}
+            disabled={!showForm && atLimit}
             title={
-              items.length >= MAX_CONNECTIONS
-                ? `워크스페이스는 최대 ${MAX_CONNECTIONS}개까지 연결할 수 있습니다`
+              atLimit
+                ? `현재 플랜 한도(${maxConn}개)에 도달했습니다`
                 : undefined
             }
           >
@@ -153,8 +154,8 @@ export default function DashboardClient({ email, devFallback }) {
         <h1>연결된 워크스페이스</h1>
         <p className="muted">
           근무시간에 맞춰 Slack 상태를 자동으로 유지합니다.
-          {!loading && ` · ${items.length}/${MAX_CONNECTIONS}`}
-          {!loading && items.length >= MAX_CONNECTIONS && " (최대)"}
+          {!loading && maxConn != null && ` · ${items.length}/${maxConn}`}
+          {atLimit && " (최대)"}
         </p>
       </div>
 

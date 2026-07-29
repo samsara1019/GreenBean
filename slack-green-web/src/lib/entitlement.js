@@ -14,6 +14,16 @@ const DAY_MS = 86_400_000;
 export const TRIAL_DAYS = Number(process.env.TRIAL_DAYS || 14);
 export const PLAN_PRICE_KRW = Number(process.env.PLAN_PRICE_KRW || 4900);
 
+// 플랜별 워크스페이스 최대 개수. Free(체험) 1개 / Pro(유료) 3개.
+export const FREE_MAX_CONNECTIONS = 1;
+export const PRO_MAX_CONNECTIONS = 3;
+
+// 유료(active/past_due 유예 포함)면 Pro 한도, 그 외(체험·만료)는 Free 한도.
+export function maxConnections(sub) {
+  const paid = sub && (sub.status === "active" || sub.status === "past_due");
+  return paid ? PRO_MAX_CONNECTIONS : FREE_MAX_CONNECTIONS;
+}
+
 export function newTrial(now = new Date()) {
   const ends = new Date(now.getTime() + TRIAL_DAYS * DAY_MS);
   return {
@@ -56,6 +66,7 @@ export function summarize(sub, now = new Date()) {
     daysLeft: trialDaysLeft(sub, now),
     entitled: isEntitled(sub, now),
     priceKrw: PLAN_PRICE_KRW,
+    maxConnections: maxConnections(sub),
   };
 }
 

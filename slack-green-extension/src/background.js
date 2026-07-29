@@ -6,12 +6,9 @@
 // credentials:"include"로 웹앱 세션 쿠키를 함께 보내므로, 웹앱에 Supabase Auth가
 // 붙으면 자동으로 "그 로그인한 사용자"의 연결로 저장된다.
 
-const API_DEFAULT = "https://green-bean-nu.vercel.app";
-
-async function getApiBase() {
-  const { apiBase } = await chrome.storage.sync.get("apiBase");
-  return (apiBase || API_DEFAULT).replace(/\/$/, "");
-}
+// 고정값. manifest host_permissions 에 등록된 주소로만 요청이 나갈 수 있으므로
+// 사용자가 바꿀 수 있게 해봐야 의미가 없다. popup.js 의 API_BASE 와 같은 값.
+const API_BASE = "https://green-bean-nu.vercel.app";
 
 async function getDCookie() {
   // `d` 쿠키는 도메인 .slack.com, HttpOnly. url만 맞으면 값을 그대로 돌려준다.
@@ -33,8 +30,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return;
       }
 
-      const apiBase = await getApiBase();
-      const res = await fetch(`${apiBase}/api/connections`, {
+      const res = await fetch(`${API_BASE}/api/connections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

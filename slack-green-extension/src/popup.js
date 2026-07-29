@@ -1,12 +1,11 @@
 const wsEl = document.getElementById("workspaces");
 const statusEl = document.getElementById("status");
-const apiInput = document.getElementById("apiBase");
 const dashLink = document.getElementById("dashLink");
 
-// background.js의 API_DEFAULT와 반드시 같은 값. 다르면 팝업이 보여주는 주소와 실제
-// 요청이 가는 주소가 어긋나고, manifest host_permissions에 없는 주소가 저장되면
-// 연결이 실패한다.
-const API_DEFAULT = "https://green-bean-nu.vercel.app";
+// background.js의 API_BASE와 반드시 같은 값. 사용자가 바꿀 수 없는 고정값이다 —
+// manifest host_permissions에 없는 주소로는 어차피 요청이 못 나가므로, 입력받아
+// 봐야 잘못 넣으면 조용히 실패할 뿐이다.
+const API_BASE = "https://green-bean-nu.vercel.app";
 
 const DEFAULT_SCHEDULE = {
   timezone: "Asia/Seoul",
@@ -15,18 +14,8 @@ const DEFAULT_SCHEDULE = {
   end: "18:00",
 };
 
-async function init() {
-  const { apiBase } = await chrome.storage.sync.get("apiBase");
-  const base = apiBase || API_DEFAULT;
-  apiInput.value = base;
-  dashLink.href = `${base.replace(/\/$/, "")}/dashboard`;
-
-  apiInput.addEventListener("change", () => {
-    const v = apiInput.value.trim();
-    chrome.storage.sync.set({ apiBase: v });
-    dashLink.href = `${v.replace(/\/$/, "")}/dashboard`;
-  });
-
+function init() {
+  dashLink.href = `${API_BASE}/dashboard`;
   loadWorkspaces();
 }
 

@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { encrypt, decrypt, mask } from "./crypto.js";
-import { newTrial } from "./entitlement.js";
+import { newTrial, maxConnections, PRO_MAX_CONNECTIONS } from "./entitlement.js";
 
 // 데이터 계층. SUPABASE_URL + SERVICE_ROLE_KEY 가 있으면 Supabase, 없으면
 // 로컬 JSON 파일(.data/connections.json)로 자동 폴백 → 세팅 없이도 즉시 실행.
@@ -80,11 +80,14 @@ export async function listConnections(userId) {
 // 확장에서 같은 워크스페이스를 다시 연결하면(토큰 만료 재인증 등) 새 행을 만들지
 // 않고 기존 행의 토큰을 갱신하고 status를 pending으로 되살린다 → 중복 방지 +
 // 워커가 재인증을 자동 감지.
-// 사용자당 연결 가능한 워크스페이스 최대 개수.
-export const MAX_CONNECTIONS = 3;
-
-function limitError() {
-  const e = new Error(`워크스페이스는 최대 ${MAX_CONNECTIONS}개까지 연결할 수 있습니다.`);
+// 연결 개수 한도는 플랜에 따라 다르다 (entitlement.maxConnections). Free 1 / Pro 3.
+function limitError(limit) {
+  const e = new Error(
+    `현재 플랜에서는 워크스페이스를 최대 ${limit}개까지 연결할 수 있습니다.` +
+      (limit < PRO_MAX_CONNECTIONS
+        ? ` Pro로 업그레이드하면 최대 ${PRO_MAX_CONNECTIONS}개까지 가능합니다.`
+        : "")
+  );
   e.code = "LIMIT";
   return e;
 }
@@ -120,13 +123,14 @@ export async function createConnection(userId, { teamName, xoxc, xoxd, schedule 
       return toPublic(data);
     }
 
-    // 새 연결 → 개수 제한 검사 (기존 워크스페이스 갱신은 위에서 이미 return됨).
+    // 새 연결 → 플랜별 개수 제한 검사 (기존 워크스페이스 갱신은 위에서 이미 return됨).
+    const limit = maxConnections(await getOrCreateSubscription(userId));
     const { count, error: cntErr } = await supabase
       .from("connections")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId);
     if (cntErr) throw cntErr;
-    if ((count || 0) >= MAX_CONNECTIONS) throw limitError();
+    if ((count || 0) >= limit) throw limitError(limit);
 
     const row = newConnectionRow(userId, name, tokenPatch, schedule);
     const { data, error } = await supabase.from("connections").insert(row).select().single();
@@ -142,8 +146,9 @@ export async function createConnection(userId, { teamName, xoxc, xoxd, schedule 
     await fileWriteAll(rows);
     return toPublic(existing);
   }
-  if (rows.filter((r) => r.user_id === userId).length >= MAX_CONNECTIONS) {
-    throw limitError();
+  const fileLimit = maxConnections(await getOrCreateSubscription(userId));
+  if (rows.filter((r) => r.user_id === userId).length >= fileLimit) {
+    throw limitError(fileLimit);
   }
   const row = newConnectionRow(userId, name, tokenPatch, schedule);
   rows.push(row);

@@ -3,7 +3,7 @@
   "name": "Green Bean Connector",
   "version": "0.1.0",
   "description": "현재 로그인된 Slack 워크스페이스를 클릭 한 번에 Green Bean에 연결합니다.",
-  "permissions": ["cookies", "storage", "activeTab"],
+  "permissions": ["cookies", "activeTab"],
   "host_permissions": [
     "https://*.slack.com/",
     "https://green-bean-nu.vercel.app/"

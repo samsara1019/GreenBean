@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # 웹스토어 업로드용 zip 생성. 개발 파일(tools, README, build.sh, dist)은 제외.
 #   ./build.sh
-# 결과: dist/alwaysgreen-extension-v<version>.zip
+# 결과: dist/green-bean-extension-v<version>.zip
 set -euo pipefail
 cd "$(dirname "$0")"
 
 VERSION=$(node -e "console.log(require('./manifest.json').version)")
-OUT="dist/alwaysgreen-extension-v${VERSION}.zip"
+OUT="dist/green-bean-extension-v${VERSION}.zip"
 
 # 아이콘이 없으면 먼저 생성
 if [ ! -f icons/icon128.png ]; then

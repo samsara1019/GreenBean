@@ -163,9 +163,9 @@ export default function Landing() {
                   Google 계정으로 가입 · 카드 등록 없음
                 </p>
                 <ul>
-                  <li>모든 Pro 기능 사용</li>
-                  <li>워크스페이스 무제한</li>
+                  <li>워크스페이스 1개</li>
                   <li>요일·타임존 세부 스케줄</li>
+                  <li>PC 꺼도 상태 유지</li>
                 </ul>
                 <Link className="btn btn-secondary" href="/login">
                   무료로 시작하기
@@ -185,7 +185,7 @@ export default function Landing() {
                   체험 종료 후 구독하면 그대로 유지
                 </p>
                 <ul>
-                  <li>워크스페이스 무제한</li>
+                  <li>워크스페이스 최대 3개</li>
                   <li>24시간 유지 옵션</li>
                   <li>연결 끊김 알림</li>
                   <li>언제든 해지 가능</li>
