@@ -294,6 +294,100 @@ export async function listDueSubscriptions(nowIso = new Date().toISOString()) {
   }));
 }
 
+/* ---------------- 결제 웹훅 (Groble) ---------------- */
+
+// 결제자 이메일 → user_id. 못 찾으면 null (결제 이메일과 가입 이메일 불일치).
+export async function findUserIdByEmail(email) {
+  if (!email) return null;
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase.rpc("user_id_by_email", { p_email: email });
+    if (error) throw error;
+    return data || null;
+  }
+  // 파일 모드(로컬 폴백)에는 auth.users 가 없다.
+  return null;
+}
+
+// 웹훅 수신 기록 + 중복 배송 차단. 이미 같은 event_key 가 있으면 duplicate:true.
+export async function recordPaymentEvent({ eventKey, eventType, email, userId, raw, note }) {
+  const row = {
+    provider: "groble",
+    event_key: eventKey,
+    event_type: eventType,
+    email: email || null,
+    user_id: userId || null,
+    applied: false,
+    note: note || null,
+    raw,
+  };
+  if (USE_SUPABASE) {
+    const { error } = await supabase.from("payment_events").insert(row);
+    // 23505 = unique 위반 → 같은 이벤트가 이미 처리됨.
+    if (error) {
+      if (error.code === "23505") return { duplicate: true };
+      throw error;
+    }
+    return { duplicate: false };
+  }
+  const path = resolve(process.cwd(), ".data", "payment_events.json");
+  let rows = [];
+  try {
+    rows = JSON.parse(await readFile(path, "utf8"));
+  } catch (e) {
+    if (e.code !== "ENOENT") throw e;
+  }
+  if (eventKey && rows.some((r) => r.event_key === eventKey)) return { duplicate: true };
+  rows.push({ ...row, created_at: new Date().toISOString() });
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, JSON.stringify(rows, null, 2));
+  return { duplicate: false };
+}
+
+// 적용은 하지 않고 사유만 남긴다(수동 처리 대상은 applied=false 로 남아야 한다).
+export async function notePaymentEvent(eventKey, note) {
+  if (!eventKey || !USE_SUPABASE) return;
+  const { error } = await supabase
+    .from("payment_events")
+    .update({ note })
+    .eq("event_key", eventKey);
+  if (error) throw error;
+}
+
+export async function markPaymentEventApplied(eventKey, { userId, note } = {}) {
+  if (!eventKey) return;
+  if (USE_SUPABASE) {
+    const { error } = await supabase
+      .from("payment_events")
+      .update({ applied: true, ...(userId ? { user_id: userId } : {}), ...(note ? { note } : {}) })
+      .eq("event_key", eventKey);
+    if (error) throw error;
+  }
+}
+
+// 결제 완료 → Pro 1개월. 기간이 남아 있으면 그 끝에서 연장한다(조기 결제 손해 방지).
+export async function grantProMonth(userId) {
+  const sub = await getOrCreateSubscription(userId);
+  const base = sub.current_period_end
+    ? Math.max(new Date(sub.current_period_end).getTime(), Date.now())
+    : Date.now();
+  const end = new Date(base);
+  end.setMonth(end.getMonth() + 1);
+  return updateSubscription(userId, {
+    plan: "pro",
+    status: "active",
+    current_period_end: end.toISOString(),
+  });
+}
+
+// 결제 취소/환불 → 즉시 종료. 취소된 결제로 서비스가 계속 돌면 안 된다.
+export async function revokePro(userId) {
+  await getOrCreateSubscription(userId);
+  return updateSubscription(userId, {
+    status: "canceled",
+    current_period_end: new Date().toISOString(),
+  });
+}
+
 async function subsReadAll() {
   try {
     return JSON.parse(await readFile(SUBS_PATH, "utf8"));

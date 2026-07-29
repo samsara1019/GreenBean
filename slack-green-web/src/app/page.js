@@ -188,13 +188,26 @@ export default function Landing() {
                   <li>워크스페이스 최대 3개</li>
                   <li>24시간 유지 옵션</li>
                   <li>연결 끊김 알림</li>
-                  <li>언제든 해지 가능</li>
+                  <li>1개월 단위 · 자동 결제 없음</li>
                 </ul>
                 <Link className="btn btn-primary" href="/login">
                   14일 무료 체험 시작
                 </Link>
               </div>
             </div>
+          </div>
+
+          {/* 외부 결제 + 수동 활성화 안내 — 결제 전에 반드시 보여야 한다. */}
+          <div className="notice" style={{ marginTop: 20 }}>
+            <span aria-hidden="true">💳</span>
+            <p style={{ margin: 0 }}>
+              <strong>결제 안내.</strong> Pro 결제는 외부 결제 페이지에서
+              진행됩니다. <strong>가입하신 Google 계정과 같은 이메일로 결제</strong>
+              해 주세요 — 이메일이 다르면 어느 계정에 적용할지 확인할 수 없습니다.
+              결제가 확인되면 <strong>몇 분 안에 자동으로</strong> Pro가 활성화됩니다.
+              이메일이 다르거나 활성화가 지연되는 경우 확인 후 24시간 이내에
+              처리해 드립니다.
+            </p>
           </div>
         </section>
 

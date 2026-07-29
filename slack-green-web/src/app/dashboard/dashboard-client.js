@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+// 외부 결제 페이지(Groble 등). 설정돼 있으면 구독 버튼이 이 링크로 나간다.
+// ⚠️ 외부 결제는 완료 신호가 앱으로 돌아오지 않는다 — 결제해도 구독 상태는
+// 자동으로 active 가 되지 않으므로 별도 활성화 경로가 필요하다.
+const PAYMENT_URL = process.env.NEXT_PUBLIC_PAYMENT_URL;
+
 const DAYS = [
   { v: 1, l: "월" },
   { v: 2, l: "화" },
@@ -72,24 +77,14 @@ export default function DashboardClient({ email, devFallback }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function subscribe() {
-    setSubBusy(true);
-    // TODO(prod): 여기서 PortOne 브라우저 SDK로 카드 등록 → billingKey 발급 후
-    //   fetch("/api/billing/checkout", { body: JSON.stringify({ billingKey }) })
-    // 지금은 MOCK_BILLING 모드에서 billingKey 없이 전환된다.
-    const res = await getJson("/api/billing/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-    setSubBusy(false);
-    if (!res) return;
-    if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
-      alert("결제 전환 실패: " + (d.error || res.status));
+  // 결제는 외부 결제 페이지(1회성)로만 진행한다. 앱 안에서 상태를 바꾸는 결제
+  // API는 없다 — 결제 확인 후 운영자가 수동으로 활성화한다.
+  function subscribe() {
+    if (!PAYMENT_URL) {
+      alert("결제 페이지가 아직 설정되지 않았습니다. 잠시 후 다시 시도해 주세요.");
       return;
     }
-    refresh();
+    window.open(PAYMENT_URL, "_blank", "noopener,noreferrer");
   }
 
   async function toggle(item) {
@@ -160,6 +155,21 @@ export default function DashboardClient({ email, devFallback }) {
       </div>
 
       {sub && <SubBanner sub={sub} busy={subBusy} onSubscribe={subscribe} />}
+
+      {/* 외부 결제 + 수동 활성화 안내. 결제 전에 반드시 읽혀야 하는 내용이라
+          버튼 옆에 상시 노출한다. */}
+      {PAYMENT_URL && sub && sub.status !== "active" && (
+        <div className="notice" style={{ marginTop: 12 }}>
+          <span aria-hidden="true">💳</span>
+          <p style={{ margin: 0 }}>
+            결제는 외부 결제 페이지에서 진행됩니다.{" "}
+            <strong>가입하신 Google 계정과 같은 이메일로 결제</strong>해 주세요 —
+            결제가 확인되면 <strong>몇 분 안에 자동으로</strong> Pro가 켜집니다
+            (화면을 새로고침해 주세요). 이메일이 다르면 자동 적용이 되지 않아
+            확인 후 24시간 이내에 처리됩니다.
+          </p>
+        </div>
+      )}
 
       {showForm && (
         <AddForm

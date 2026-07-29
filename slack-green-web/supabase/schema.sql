@@ -61,6 +61,46 @@ create trigger subscriptions_set_updated_at
   for each row execute function set_updated_at();
 
 -- ---------------------------------------------------------------------------
+-- 결제 웹훅 (Groble) 수신 기록.
+--
+-- 왜 필요한가: ① 웹훅은 중복 배송될 수 있다 — event_key unique 로 두 번 적용되는
+-- 것을 막는다(안 막으면 한 번 결제에 이용기간이 두 달씩 늘어난다). ② 페이로드
+-- 형태가 바뀌거나 이메일 매칭이 실패했을 때 raw 를 보고 사후 처리할 수 있다.
+-- ---------------------------------------------------------------------------
+create table if not exists payment_events (
+  id          bigserial primary key,
+  provider    text not null default 'groble',
+  event_key   text unique,        -- 결제ID 등. 없으면 페이로드 해시.
+  event_type  text,               -- paid | canceled | unknown
+  email       text,
+  user_id     text,
+  applied     boolean not null default false,  -- 구독에 반영됐는지
+  note        text,
+  raw         jsonb not null,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists payment_events_created_idx on payment_events (created_at desc);
+
+alter table payment_events enable row level security;
+-- 정책 없음 = anon/authenticated 는 접근 불가. 서버(service_role)만 읽고 쓴다.
+
+-- 결제자 이메일 → auth.users.id 조회.
+-- auth 스키마는 PostgREST 로 노출되지 않으므로 security definer 함수로 감싼다.
+create or replace function public.user_id_by_email(p_email text)
+returns text
+language sql
+security definer
+set search_path = public, auth
+as $$
+  select id::text from auth.users where lower(email) = lower(p_email) limit 1;
+$$;
+
+revoke all on function public.user_id_by_email(text) from public;
+revoke all on function public.user_id_by_email(text) from anon, authenticated;
+grant execute on function public.user_id_by_email(text) to service_role;
+
+-- ---------------------------------------------------------------------------
 -- RLS (Row Level Security)
 --
 -- user_id 에는 Supabase Auth 의 auth.uid() (UUID) 가 문자열로 들어간다.
