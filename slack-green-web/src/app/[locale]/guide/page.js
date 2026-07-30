@@ -128,6 +128,119 @@ export default function GuidePage() {
           </div>
         </section>
 
+        {/* 확장 없이 직접 입력 — 자격증명 두 개를 손으로 얻는 방법 */}
+        <section id="manual" style={{ paddingTop: 0 }}>
+          <div className="card" style={{ padding: "var(--space-lg)" }}>
+            <h3 className="t-h3" style={{ marginBottom: "var(--space-sm)" }}>
+              확장 없이 직접 입력하기 (xoxc · xoxd 얻는 방법)
+            </h3>
+            <p className="muted" style={{ marginBottom: "var(--space-md)" }}>
+              대시보드의 <strong>+ 워크스페이스 연결</strong> 폼에 값을 직접 넣는
+              방법입니다. 두 값의 저장 위치가 달라서 각각 다른 곳에서 가져옵니다 —
+              토큰은 브라우저 저장소, 쿠키는 HttpOnly라 개발자도구에서만 보입니다.
+            </p>
+
+            <h4 className="t-h4" style={{ marginBottom: "var(--space-sm)" }}>
+              준비
+            </h4>
+            <ol className="guide-ol" style={{ marginBottom: "var(--space-lg)" }}>
+              <li>
+                Chrome에서 <code>https://app.slack.com</code> 에 로그인합니다.
+                (데스크톱 앱이 아니라 <strong>웹 브라우저</strong>여야 합니다)
+              </li>
+              <li>
+                <code>F12</code> (macOS는 <code>⌥⌘I</code>) 로 개발자도구를 엽니다.
+              </li>
+            </ol>
+
+            <h4 className="t-h4" style={{ marginBottom: "var(--space-sm)" }}>
+              ① xoxc 토큰 — Console 탭
+            </h4>
+            <ol className="guide-ol" style={{ marginBottom: "var(--space-lg)" }}>
+              <li>
+                <strong>Console</strong> 탭으로 이동합니다.
+              </li>
+              <li>
+                Chrome이 붙여넣기를 막으면 콘솔에 <code>allow pasting</code> 을
+                입력하고 Enter를 한 번 눌러 허용합니다.
+              </li>
+              <li>
+                아래 한 줄을 붙여넣고 Enter:
+                <pre>
+                  <code>
+                    {`Object.values(JSON.parse(localStorage.localConfig_v2).teams).map(t => ({ 워크스페이스: t.name, token: t.token }))`}
+                  </code>
+                </pre>
+              </li>
+              <li>
+                워크스페이스 목록이 나옵니다. 삼각형을 눌러 펼치고, 연결할
+                워크스페이스의 <code>token</code> 값(<code>xoxc-</code> 로 시작)을
+                복사합니다.
+              </li>
+            </ol>
+
+            <h4 className="t-h4" style={{ marginBottom: "var(--space-sm)" }}>
+              ② xoxd 쿠키 — Application 탭
+            </h4>
+            <p className="muted" style={{ marginBottom: "var(--space-sm)" }}>
+              이 값은 <code>document.cookie</code> 로 읽을 수 없습니다(HttpOnly).
+              반드시 아래 경로로 확인하세요.
+            </p>
+            <ol className="guide-ol" style={{ marginBottom: "var(--space-lg)" }}>
+              <li>
+                개발자도구에서 <strong>Application</strong> 탭을 엽니다. (탭이 안
+                보이면 <code>≫</code> 버튼을 눌러 찾으세요)
+              </li>
+              <li>
+                왼쪽 트리에서 <strong>Storage → Cookies →</strong>{" "}
+                <code>https://app.slack.com</code> 을 클릭합니다.
+              </li>
+              <li>
+                Name 열이 정확히 <code>d</code> 인 행을 찾아 클릭합니다.
+                <br />
+                <span className="muted">
+                  <code>d-s</code>, <code>lc</code> 등 비슷한 이름과 혼동하지
+                  마세요. 필요하면 위쪽 필터 칸에 <code>d</code> 를 입력하세요.
+                </span>
+              </li>
+              <li>
+                아래 <strong>Cookie Value</strong> 영역의 값(<code>xoxd-</code> 로
+                시작)을 전체 복사합니다. 길고 <code>%</code> 기호가 섞여 있어도 그대로
+                복사하면 됩니다.
+              </li>
+            </ol>
+
+            <h4 className="t-h4" style={{ marginBottom: "var(--space-sm)" }}>
+              ③ 대시보드에 붙여넣기
+            </h4>
+            <ol className="guide-ol" style={{ marginBottom: "var(--space-md)" }}>
+              <li>
+                <a href="/dashboard">대시보드</a> → <strong>+ 워크스페이스 연결</strong>
+              </li>
+              <li>
+                <strong>워크스페이스 이름</strong>은 알아보기 쉬운 이름으로 (예:
+                우리회사)
+              </li>
+              <li>
+                <strong>xoxc 토큰</strong> 칸에 ①의 값,{" "}
+                <strong>xoxd 쿠키 값</strong> 칸에 ②의 값을 붙여넣습니다.
+              </li>
+              <li>근무 요일·시간·타임존을 지정하고 저장하면 끝입니다.</li>
+            </ol>
+
+            <div className="notice">
+              <span aria-hidden="true">🔐</span>
+              <p style={{ margin: 0 }}>
+                <strong>이 두 값은 사실상 계정 비밀번호와 같습니다.</strong> 누구에게도
+                공유하거나 스크린샷으로 남기지 마세요. 저장 시 서버에서 즉시 암호화되고
+                화면에는 일부만 표시됩니다. Slack에서 <strong>모든 세션에서
+                로그아웃</strong>하거나 비밀번호를 변경하면 두 값이 무효화되므로 다시
+                입력해야 합니다.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* 문제 해결 */}
         <section style={{ paddingTop: 0 }}>
           <h2 className="t-h2" style={{ marginBottom: "var(--space-md)" }}>

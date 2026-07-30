@@ -965,6 +965,24 @@ select:disabled {
   padding: 2px 6px;
   border-radius: var(--radius-sm);
 }
+/* 코드 블록. 붙여넣기용 한 줄 코드가 길어서 줄바꿈하면 오히려 복사하기 나쁘다
+   → 줄바꿈 대신 가로 스크롤로 두어 레이아웃이 밀리는 것만 막는다. */
+.legal pre,
+.guide-ol pre {
+  margin: var(--space-xs) 0 0;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+.legal pre code,
+.guide-ol pre code {
+  background: none;
+  padding: 0;
+  white-space: pre;
+  font-size: 12px;
+}
 .guide-ol {
   margin: 0;
   padding-left: var(--space-lg);
