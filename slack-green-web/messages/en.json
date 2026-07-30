@@ -1,0 +1,157 @@
+{
+  "common": {
+    "nav": {
+      "pricing": "Pricing",
+      "guides": "Guides",
+      "start": "Get started"
+    },
+    "cta": {
+      "startFree": "Start free",
+      "howItWorks": "See how it works",
+      "startTrial": "Start 14-day free trial"
+    },
+    "footer": {
+      "blog": "Slack status guides",
+      "guide": "Setup guide",
+      "terms": "Terms of Service",
+      "refund": "Refund Policy",
+      "privacy": "Privacy Policy",
+      "home": "Home",
+      "copyright": "© 2026 Green Bean · Slack is a trademark of Slack Technologies, Inc. This service is not affiliated with or endorsed by Slack."
+    },
+    "localeSwitcher": {
+      "label": "Choose language"
+    },
+    "untranslated": {
+      "title": "Korean original",
+      "body": "This page is currently available in Korean only. An English version is in progress."
+    }
+  },
+  "landing": {
+    "meta": {
+      "title": "Keep Slack Active All Day — Green Bean",
+      "description": "Keep your Slack green dot on during work hours. Your status stays active even with your laptop closed, and switches off automatically when the day ends. 14-day free trial."
+    },
+    "hero": {
+      "chip": "⏱ Work-hours automation · No admin approval",
+      "titleTop": "Step away and your",
+      "titleBottomBefore": "Slack stays ",
+      "titleHighlight": "green",
+      "titleBottomAfter": "",
+      "lead": "Close your laptop, take lunch, and your <b>Slack green dot</b> stays on. Green Bean holds your status active during the hours you set and stops Slack from flipping you to away. Configure it once — the cloud handles the rest."
+    },
+    "features": {
+      "title": "Why Green Bean",
+      "sub": "No more mouse jigglers, no more leaving a window open just to look online.",
+      "real": {
+        "title": "A real green dot",
+        "body": "Green Bean holds a connection the same way the Slack web client does, so teammates see you as genuinely active."
+      },
+      "hours": {
+        "title": "Work-hours automation",
+        "body": "Pick your days, hours, and time zone. It turns on only then, and switches off when you clock out."
+      },
+      "cloud": {
+        "title": "Laptop closed? Fine",
+        "body": "Your status is held from the cloud around the clock. Shut the lid and nothing changes."
+      },
+      "setup": {
+        "title": "Connected in a minute",
+        "body": "One click from the browser extension. No workspace admin approval, no app install request."
+      },
+      "security": {
+        "title": "Encrypted credentials",
+        "body": "Credentials are stored AES-encrypted, and we never read your messages or DMs."
+      },
+      "multi": {
+        "title": "Multiple workspaces",
+        "body": "Run your day job and your side project on separate schedules."
+      }
+    },
+    "how": {
+      "title": "How it works",
+      "sub": "Connect, set your hours, done.",
+      "connect": {
+        "title": "Connect your workspace",
+        "body": "Install the browser extension, stay signed in to Slack, and connect with a single click."
+      },
+      "schedule": {
+        "title": "Set your work hours",
+        "body": "Something like Mon–Fri, 09:00–18:00 in your own time zone."
+      },
+      "run": {
+        "title": "It runs itself",
+        "body": "Your green dot stays on through those hours and goes off outside them."
+      }
+    },
+    "pricing": {
+      "title": "Pricing",
+      "sub": "Start free, upgrade when you need more.",
+      "free": {
+        "chip": "Free trial",
+        "amount": "14 days",
+        "per": " free",
+        "note": "Sign up with Google · No card required",
+        "f1": "1 workspace",
+        "f2": "Per-day and time-zone scheduling",
+        "f3": "Status held with your laptop closed"
+      },
+      "pro": {
+        "chip": "Pro · after the trial",
+        "amount": "₩4,900",
+        "per": "/mo",
+        "note": "Billed in Korean won (KRW) through our payment provider",
+        "f1": "Up to 3 workspaces",
+        "f2": "24-hour hold option",
+        "f3": "Disconnection alerts",
+        "f4": "Renews monthly · cancel anytime"
+      },
+      "payment": "<b>About payment.</b> Pro is billed through our payment provider (Groble), currently in Korean won. Subscribe from the dashboard button and your account links automatically — Pro switches on within a few minutes of confirmation. It renews monthly and you can cancel from the dashboard at any time."
+    },
+    "disclaimer": "<b>Please note.</b> Green Bean is an independent third-party tool, not affiliated with Slack Technologies. Automated presence may be restricted by your workspace policy or Slack's terms of service, and you are responsible for any action taken against your account. Credentials are stored encrypted and we do not access message content.",
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": {
+        "q": "Can I keep my Slack status active all day?",
+        "a": "Yes. Green Bean holds your Slack connection during the hours you choose, so your status stays active (green dot). It runs from the cloud even with your computer off, and switches itself off once your scheduled hours end."
+      },
+      "q2": {
+        "q": "How do I stop Slack from showing me as away?",
+        "a": "Slack flips you to away after a period without input. Green Bean maintains a connection the same way the web client does, so that switch never happens. You do not need a mouse jiggler or a script running on your machine."
+      },
+      "q3": {
+        "q": "Will teammates really see me as active?",
+        "a": "Yes. Because it holds the same kind of connection as Slack on the web, your presence shows as active on their side."
+      },
+      "q4": {
+        "q": "Is it safe?",
+        "a": "Credentials are stored encrypted, and messages and DMs are never read or stored. That said, any automation can be affected by your workspace's own policies."
+      },
+      "q5": {
+        "q": "Does my workspace admin need to approve it?",
+        "a": "No. It works through your own web session, so there is no app to install and no admin approval to request."
+      },
+      "q6": {
+        "q": "Can I turn it off whenever I want?",
+        "a": "Yes — one toggle in the dashboard stops it immediately."
+      }
+    }
+  },
+  "login": {
+    "meta": {
+      "title": "Get started",
+      "description": "Sign up with Google and start your 14-day free trial."
+    },
+    "title": "Get started",
+    "sub": "Creating an account starts your <b>14-day free trial</b>. No card required.",
+    "devMode": "<b>Local development mode.</b> Supabase auth is not configured, so the app runs as a single dev user.",
+    "devModeLink": "Go to the dashboard",
+    "google": "Continue with Google",
+    "googleBusy": "Redirecting…",
+    "failed": "Sign-in failed.",
+    "p1": "All Pro features for 14 days",
+    "p2": "No card to start",
+    "p3": "Cancel anytime",
+    "legal": "By continuing you acknowledge that automated presence may be affected by your workspace policy and Slack's terms of service. Credentials are stored encrypted and message content is never accessed."
+  }
+}

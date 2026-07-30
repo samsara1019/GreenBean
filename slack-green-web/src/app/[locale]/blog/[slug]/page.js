@@ -1,18 +1,25 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { POSTS, getPost } from "../../../lib/posts.js";
-import { SITE_URL, SITE_NAME, pageMetadata } from "../../../lib/seo.js";
+import { setRequestLocale } from "next-intl/server";
+import { POSTS, getPost } from "../../../../lib/posts.js";
+import { SITE_URL, SITE_NAME, pageMetadata } from "../../../../lib/seo.js";
+import { Link } from "../../../../i18n/navigation.js";
+import UntranslatedNotice from "../../../../components/untranslated-notice.js";
 
 // 빌드 시점에 모든 글을 정적 생성한다 → 크롤러가 즉시 완성된 HTML을 받는다.
+// locale 은 상위 [locale] 세그먼트가 생성하므로 여기서는 slug 만 돌려주면
+// Next 가 (locale × slug) 조합을 만들어 준다.
 export function generateStaticParams() {
   return POSTS.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const post = getPost(params.slug);
+export function generateMetadata({ params: { locale, slug } }) {
+  const post = getPost(slug);
   if (!post) return {};
+  // 글 본문은 한국어뿐이므로 pageMetadata 가 canonical 을 한국어 URL로 보내고
+  // 다른 로케일에는 noindex 를 건다. OG 도 그에 맞춰 한국어 URL을 가리킨다.
   return {
     ...pageMetadata({
+      locale,
       title: post.title,
       description: post.description,
       path: `/blog/${post.slug}`,
@@ -69,8 +76,10 @@ function Block({ block }) {
   return null;
 }
 
-export default function PostPage({ params }) {
-  const post = getPost(params.slug);
+export default function PostPage({ params: { locale, slug } }) {
+  setRequestLocale(locale);
+
+  const post = getPost(slug);
   if (!post) notFound();
 
   const url = `${SITE_URL}/blog/${post.slug}`;

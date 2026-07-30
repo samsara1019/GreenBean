@@ -1,0 +1,157 @@
+{
+  "common": {
+    "nav": {
+      "pricing": "Precios",
+      "guides": "Guías",
+      "start": "Empezar"
+    },
+    "cta": {
+      "startFree": "Empezar gratis",
+      "howItWorks": "Ver cómo funciona",
+      "startTrial": "Iniciar prueba de 14 días"
+    },
+    "footer": {
+      "blog": "Guías de estado de Slack",
+      "guide": "Guía de instalación",
+      "terms": "Términos de servicio",
+      "refund": "Política de reembolso",
+      "privacy": "Política de privacidad",
+      "home": "Inicio",
+      "copyright": "© 2026 Green Bean · Slack es una marca de Slack Technologies, Inc. Este servicio no está afiliado ni respaldado por Slack."
+    },
+    "localeSwitcher": {
+      "label": "Elegir idioma"
+    },
+    "untranslated": {
+      "title": "Original en coreano",
+      "body": "Esta página solo está disponible en coreano por ahora. La versión en español está en preparación."
+    }
+  },
+  "landing": {
+    "meta": {
+      "title": "Mantén Slack activo en tu horario de trabajo — Green Bean",
+      "description": "Mantén el punto verde de Slack encendido durante tu horario laboral. Tu estado sigue activo aunque cierres la laptop y se apaga solo al terminar el día. Prueba gratis de 14 días."
+    },
+    "hero": {
+      "chip": "⏱ Automatización por horario · Sin aprobación del admin",
+      "titleTop": "Levántate del escritorio y tu",
+      "titleBottomBefore": "Slack sigue en ",
+      "titleHighlight": "verde",
+      "titleBottomAfter": "",
+      "lead": "Cierra la laptop, sal a almorzar: el <b>punto verde de Slack</b> sigue encendido. Green Bean mantiene tu estado activo en el horario que definas y evita que Slack te pase a ausente. Lo configuras una vez y la nube se encarga del resto."
+    },
+    "features": {
+      "title": "Por qué Green Bean",
+      "sub": "Sin mover el mouse a cada rato ni dejar una ventana abierta solo para parecer en línea.",
+      "real": {
+        "title": "Un verde real",
+        "body": "La conexión se mantiene igual que la del cliente web de Slack, así que tu equipo te ve realmente activo."
+      },
+      "hours": {
+        "title": "Automatización por horario",
+        "body": "Elige días, horas y zona horaria. Se activa solo en ese rango y se apaga al terminar la jornada."
+      },
+      "cloud": {
+        "title": "¿Laptop cerrada? No pasa nada",
+        "body": "El estado se mantiene desde la nube las 24 horas. Cierra la tapa y nada cambia."
+      },
+      "setup": {
+        "title": "Conectado en un minuto",
+        "body": "Un clic desde la extensión del navegador. Sin aprobación del administrador ni solicitud de instalación."
+      },
+      "security": {
+        "title": "Credenciales cifradas",
+        "body": "Las credenciales se guardan cifradas con AES y nunca leemos tus mensajes ni tus DM."
+      },
+      "multi": {
+        "title": "Varios espacios de trabajo",
+        "body": "Tu trabajo principal y tu proyecto aparte, cada uno con su propio horario."
+      }
+    },
+    "how": {
+      "title": "Cómo funciona",
+      "sub": "Conecta, define tu horario y listo.",
+      "connect": {
+        "title": "Conecta tu espacio de trabajo",
+        "body": "Instala la extensión del navegador, mantén tu sesión de Slack abierta y conecta con un clic."
+      },
+      "schedule": {
+        "title": "Define tu horario",
+        "body": "Por ejemplo, lun–vie de 09:00 a 18:00 en tu propia zona horaria."
+      },
+      "run": {
+        "title": "Funciona solo",
+        "body": "El punto verde se mantiene durante esas horas y se apaga fuera de ellas."
+      }
+    },
+    "pricing": {
+      "title": "Precios",
+      "sub": "Empieza gratis y sube de plan cuando lo necesites.",
+      "free": {
+        "chip": "Prueba gratis",
+        "amount": "14 días",
+        "per": " gratis",
+        "note": "Regístrate con Google · Sin tarjeta",
+        "f1": "1 espacio de trabajo",
+        "f2": "Horarios por día y zona horaria",
+        "f3": "Estado activo con la laptop cerrada"
+      },
+      "pro": {
+        "chip": "Pro · después de la prueba",
+        "amount": "₩4.900",
+        "per": "/mes",
+        "note": "Se cobra en wones surcoreanos (KRW) a través de nuestro procesador de pagos",
+        "f1": "Hasta 3 espacios de trabajo",
+        "f2": "Opción de mantener 24 horas",
+        "f3": "Alertas de desconexión",
+        "f4": "Se renueva cada mes · cancela cuando quieras"
+      },
+      "payment": "<b>Sobre el pago.</b> Pro se cobra a través de nuestro procesador de pagos (Groble), por ahora en wones surcoreanos. Si te suscribes con el botón del panel, tu cuenta se vincula automáticamente y Pro se activa <b>en pocos minutos</b> tras la confirmación. La renovación es mensual y puedes cancelar desde el panel en cualquier momento."
+    },
+    "disclaimer": "<b>Ten en cuenta.</b> Green Bean es una herramienta independiente de terceros, sin relación con Slack Technologies. Mantener la presencia de forma automática puede estar restringido por la política de tu espacio de trabajo o por los términos de servicio de Slack, y cualquier medida sobre tu cuenta es responsabilidad tuya. Las credenciales se almacenan cifradas y no accedemos al contenido de los mensajes.",
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "q1": {
+        "q": "¿Cómo mantengo Slack activo todo el día?",
+        "a": "Green Bean mantiene tu conexión de Slack durante el horario que elijas, así tu estado sigue activo (punto verde). Funciona desde la nube incluso con la computadora apagada y se desactiva solo cuando termina tu horario."
+      },
+      "q2": {
+        "q": "¿Cómo evito que Slack me muestre como ausente?",
+        "a": "Slack te pasa a ausente después de un rato sin actividad. Green Bean mantiene la conexión igual que el cliente web, así que ese cambio no ocurre. No necesitas mover el mouse ni dejar un script corriendo en tu equipo."
+      },
+      "q3": {
+        "q": "¿De verdad me ven como activo?",
+        "a": "Sí. Como se mantiene el mismo tipo de conexión que Slack en el navegador, tu presencia aparece como activa para las demás personas."
+      },
+      "q4": {
+        "q": "¿Es seguro?",
+        "a": "Las credenciales se guardan cifradas, y los mensajes y DM nunca se leen ni se almacenan. Dicho eso, cualquier automatización puede verse afectada por las políticas de tu propio espacio de trabajo."
+      },
+      "q5": {
+        "q": "¿Necesito la aprobación del administrador?",
+        "a": "No. Funciona con tu propia sesión web, así que no hay app que instalar ni aprobación que pedir."
+      },
+      "q6": {
+        "q": "¿Puedo desactivarlo cuando quiera?",
+        "a": "Sí: un interruptor en el panel lo detiene de inmediato."
+      }
+    }
+  },
+  "login": {
+    "meta": {
+      "title": "Empezar",
+      "description": "Regístrate con Google y comienza tu prueba gratis de 14 días."
+    },
+    "title": "Empezar",
+    "sub": "Crear una cuenta inicia tu <b>prueba gratis de 14 días</b>. Sin tarjeta.",
+    "devMode": "<b>Modo de desarrollo local.</b> La autenticación de Supabase no está configurada, así que la app corre con un único usuario de desarrollo.",
+    "devModeLink": "Ir al panel",
+    "google": "Continuar con Google",
+    "googleBusy": "Redirigiendo…",
+    "failed": "No se pudo iniciar sesión.",
+    "p1": "Todas las funciones Pro por 14 días",
+    "p2": "Empieza sin tarjeta",
+    "p3": "Cancela cuando quieras",
+    "legal": "Al continuar, reconoces que mantener la presencia de forma automática puede verse afectado por la política de tu espacio de trabajo y por los términos de servicio de Slack. Las credenciales se almacenan cifradas y nunca se accede al contenido de los mensajes."
+  }
+}

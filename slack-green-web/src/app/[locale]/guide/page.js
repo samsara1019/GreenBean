@@ -1,11 +1,17 @@
-import Link from "next/link";
-import { pageMetadata } from "../../lib/seo.js";
+import { setRequestLocale } from "next-intl/server";
+import { Link } from "../../../i18n/navigation.js";
+import UntranslatedNotice from "../../../components/untranslated-notice.js";
+import { pageMetadata } from "../../../lib/seo.js";
 
-export const metadata = pageMetadata({
-  title: "설치 가이드",
-  description: "브라우저 확장을 설치하고 Slack 워크스페이스를 연결해 초록불을 유지하는 방법. 3단계, 1분 소요.",
-  path: "/guide",
-});
+export function generateMetadata({ params: { locale } }) {
+  return pageMetadata({
+    locale,
+    title: "설치 가이드",
+    description:
+      "브라우저 확장을 설치하고 Slack 워크스페이스를 연결해 초록불을 유지하는 방법. 3단계, 1분 소요.",
+    path: "/guide",
+  });
+}
 
 const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "";
 
@@ -29,7 +35,9 @@ const STEPS = [
   },
 ];
 
-export default function GuidePage() {
+export default function GuidePage({ params: { locale } }) {
+  setRequestLocale(locale);
+
   return (
     <>
       <header className="container">
@@ -44,6 +52,8 @@ export default function GuidePage() {
       </header>
 
       <main className="container" style={{ maxWidth: 760 }}>
+        <UntranslatedNotice />
+
         <section style={{ paddingBottom: "var(--space-lg)" }}>
           <span className="chip chip-info">설치 가이드</span>
           <h1 className="t-h1" style={{ margin: "var(--space-md) 0" }}>

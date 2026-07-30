@@ -1,16 +1,23 @@
-import Link from "next/link";
-import { pageMetadata } from "../../lib/seo.js";
-import { BUSINESS, businessLine, contactLine } from "../../lib/business.js";
+import { setRequestLocale } from "next-intl/server";
+import { Link } from "../../../i18n/navigation.js";
+import UntranslatedNotice from "../../../components/untranslated-notice.js";
+import { pageMetadata } from "../../../lib/seo.js";
+import { BUSINESS, businessLine, contactLine } from "../../../lib/business.js";
 
-export const metadata = pageMetadata({
-  title: "이용약관",
-  description: "Green Bean 서비스 이용약관.",
-  path: "/terms",
-});
+export function generateMetadata({ params: { locale } }) {
+  return pageMetadata({
+    locale,
+    title: "이용약관",
+    description: "Green Bean 서비스 이용약관.",
+    path: "/terms",
+  });
+}
 
 const EFFECTIVE_DATE = "2026-07-28";
 
-export default function TermsPage() {
+export default function TermsPage({ params: { locale } }) {
+  setRequestLocale(locale);
+
   return (
     <>
       <header className="container">
@@ -25,6 +32,8 @@ export default function TermsPage() {
       </header>
 
       <main className="container legal" style={{ maxWidth: 760 }}>
+        <UntranslatedNotice />
+
         <h1 className="t-h1" style={{ marginBottom: "var(--space-sm)" }}>
           이용약관
         </h1>

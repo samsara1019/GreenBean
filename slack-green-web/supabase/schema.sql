@@ -128,3 +128,13 @@ create policy "read own subscription" on subscriptions
   for select
   to authenticated
   using (auth.uid()::text = user_id);
+
+-- 정식 개발 요청(수요 검증) 클릭 로그. 공개 라우트가 service_role로 insert한다.
+create table if not exists dev_requests (
+  id         bigint generated always as identity primary key,
+  email      text,
+  source     text default 'guide',
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+create index if not exists dev_requests_created_idx on dev_requests (created_at);

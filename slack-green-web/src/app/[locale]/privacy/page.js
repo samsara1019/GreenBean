@@ -1,17 +1,24 @@
-import Link from "next/link";
-import { pageMetadata } from "../../lib/seo.js";
+import { setRequestLocale } from "next-intl/server";
+import { Link } from "../../../i18n/navigation.js";
+import UntranslatedNotice from "../../../components/untranslated-notice.js";
+import { pageMetadata } from "../../../lib/seo.js";
 
-export const metadata = pageMetadata({
-  title: "개인정보처리방침",
-  description: "Green Bean이 수집·이용·보관하는 정보와 그 처리 방식.",
-  path: "/privacy",
-});
+export function generateMetadata({ params: { locale } }) {
+  return pageMetadata({
+    locale,
+    title: "개인정보처리방침",
+    description: "Green Bean이 수집·이용·보관하는 정보와 그 처리 방식.",
+    path: "/privacy",
+  });
+}
 
 // TODO(prod): 아래 연락처와 사업자 정보를 실제 값으로 교체할 것.
 const CONTACT_EMAIL = "privacy@alwaysgreen.kr";
 const EFFECTIVE_DATE = "2026-07-27";
 
-export default function PrivacyPage() {
+export default function PrivacyPage({ params: { locale } }) {
+  setRequestLocale(locale);
+
   return (
     <>
       <header className="container">
@@ -26,6 +33,8 @@ export default function PrivacyPage() {
       </header>
 
       <main className="container legal" style={{ maxWidth: 760 }}>
+        <UntranslatedNotice />
+
         <h1 className="t-h1" style={{ marginBottom: "var(--space-sm)" }}>
           개인정보처리방침
         </h1>

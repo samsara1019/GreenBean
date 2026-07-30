@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { POSTS } from "../../lib/posts.js";
-import { pageMetadata } from "../../lib/seo.js";
+import { POSTS } from "../../../lib/posts.js";
+import { pageMetadata } from "../../../lib/seo.js";
 
 export const metadata = pageMetadata({
   title: "슬랙 상태 관리 가이드",

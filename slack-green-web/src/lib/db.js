@@ -209,6 +209,40 @@ export async function deleteConnection(userId, id) {
   await fileWriteAll(rows.filter((r) => !(r.id === id && r.user_id === userId)));
 }
 
+/* ---------------- Dev interest (수요 검증) ---------------- */
+
+// "정식 개발 요청" 클릭을 기록하고 누적 건수를 반환한다. 로그인 불필요(공개).
+export async function recordInterest({ email, source, userAgent }) {
+  const row = {
+    email: email || null,
+    source: source || "guide",
+    user_agent: userAgent || null,
+    created_at: new Date().toISOString(),
+  };
+
+  if (USE_SUPABASE) {
+    const { error } = await supabase.from("dev_requests").insert(row);
+    if (error) throw error;
+    const { count } = await supabase
+      .from("dev_requests")
+      .select("id", { count: "exact", head: true });
+    return count ?? null;
+  }
+
+  // file mode
+  const path = resolve(process.cwd(), ".data", "dev_requests.json");
+  let rows = [];
+  try {
+    rows = JSON.parse(await readFile(path, "utf8"));
+  } catch (e) {
+    if (e.code !== "ENOENT") throw e;
+  }
+  rows.push({ id: `req_${cryptoRandomId()}`, ...row });
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, JSON.stringify(rows, null, 2));
+  return rows.length;
+}
+
 /* ---------------- Subscriptions ---------------- */
 
 // 사용자의 구독 정보를 반환한다. 없으면 14일 체험을 자동 생성한다(첫 진입 = 체험 시작).
