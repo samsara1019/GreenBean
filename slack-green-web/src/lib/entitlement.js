@@ -51,10 +51,17 @@ export function isEntitled(sub, now = new Date()) {
   return false;
 }
 
+// KST(UTC+9) 기준 '달력 날짜 인덱스'. 같은 날이면 같은 값 → 자정마다 1씩 증가.
+function kstDayIndex(d) {
+  return Math.floor((d.getTime() + 9 * 3_600_000) / DAY_MS);
+}
+
+// 남은 '달력 일수'. 가입일 당일 D-14, 다음 날(자정 지나면) D-13 … 로 매일 1씩 감소.
+// (raw ms + ceil 방식은 가입 후 24시간이 안 지나면 계속 D-14로 보여 '안 떨어진다'는
+//  오해를 준다. KST 자정 기준으로 바꿔 예측 가능하게 한다.)
 export function trialDaysLeft(sub, now = new Date()) {
   if (!sub || sub.status !== "trialing" || !sub.trial_ends_at) return 0;
-  const ms = new Date(sub.trial_ends_at).getTime() - now.getTime();
-  return Math.max(0, Math.ceil(ms / DAY_MS));
+  return Math.max(0, kstDayIndex(new Date(sub.trial_ends_at)) - kstDayIndex(now));
 }
 
 export function summarize(sub, now = new Date()) {

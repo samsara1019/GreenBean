@@ -54,7 +54,8 @@ export default function DashboardClient({ email, devFallback }) {
 
   // 세션이 만료되면 API가 401을 준다 → 로그인으로 돌려보낸다.
   async function getJson(url, init) {
-    const res = await fetch(url, init);
+    // no-store: 브라우저가 구독/연결 GET을 캐싱해 옛 D-day가 굳는 것 방지.
+    const res = await fetch(url, { cache: "no-store", ...init });
     if (res.status === 401) {
       router.push("/login?next=/dashboard");
       return null;
@@ -171,19 +172,6 @@ export default function DashboardClient({ email, devFallback }) {
       </div>
 
       {sub && <SubBanner sub={sub} busy={subBusy} onSubscribe={subscribe} />}
-
-      {/* 결제 안내. 결제 전에 읽혀야 하는 내용이라 상시 노출한다. */}
-      {PAYMENT_URL && sub && sub.status !== "active" && (
-        <div className="notice" style={{ marginTop: 12 }}>
-          <span aria-hidden="true">💳</span>
-          <p style={{ margin: 0 }}>
-            결제는 결제대행 서비스(Groble)에서 진행됩니다. 이 버튼으로 결제하면
-            계정이 자동으로 연결되어, 결제 확인 후 <strong>몇 분 안에</strong> Pro가
-            켜집니다(화면을 새로고침해 주세요). 월 단위 자동 갱신이며 언제든 해지할
-            수 있습니다.
-          </p>
-        </div>
-      )}
 
       {showForm && (
         <AddForm
