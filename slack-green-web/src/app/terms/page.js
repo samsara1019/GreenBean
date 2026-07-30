@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { pageMetadata } from "../../lib/seo.js";
 import { BUSINESS, businessLine, contactLine } from "../../lib/business.js";
 
-export const metadata = {
-  title: "이용약관 — Green Bean",
+export const metadata = pageMetadata({
+  title: "이용약관",
   description: "Green Bean 서비스 이용약관.",
-};
+  path: "/terms",
+});
 
 const EFFECTIVE_DATE = "2026-07-28";
 

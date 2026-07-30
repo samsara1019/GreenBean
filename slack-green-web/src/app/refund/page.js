@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { pageMetadata } from "../../lib/seo.js";
 import { BUSINESS, businessLine, contactLine } from "../../lib/business.js";
 
-export const metadata = {
-  title: "환불정책 — Green Bean",
+export const metadata = pageMetadata({
+  title: "환불정책",
   description: "Green Bean 구독 청약철회 및 환불 정책.",
-};
+  path: "/refund",
+});
 
 const EFFECTIVE_DATE = "2026-07-28";
 

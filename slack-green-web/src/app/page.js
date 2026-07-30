@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BUSINESS, businessLine, contactLine } from "../lib/business.js";
+import { SITE_URL, DEFAULT_DESCRIPTION, pageMetadata } from "../lib/seo.js";
 
 const FEATURES = [
   {
@@ -49,7 +50,17 @@ const STEPS = [
   },
 ];
 
+// FAQ는 검색 유입의 핵심이다 — 사람들이 실제로 검색창에 치는 문장을 질문으로 쓰고,
+// 아래에서 FAQPage 구조화 데이터로도 내보내 구글 리치 결과를 노린다.
 const FAQ = [
+  {
+    q: "슬랙 초록불을 계속 유지할 수 있나요?",
+    a: "네. Green Bean은 근무시간 동안 Slack 접속을 대신 유지해 상태를 활성(초록불)으로 계속 표시합니다. PC를 꺼도 클라우드에서 유지되며, 설정한 시간이 지나면 자동으로 꺼집니다.",
+  },
+  {
+    q: "슬랙 자리비움(away)이 뜨지 않게 하려면 어떻게 하나요?",
+    a: "Slack은 일정 시간 입력이 없으면 자동으로 자리비움으로 바꿉니다. Green Bean은 웹 클라이언트와 동일한 방식으로 접속을 유지해 자리비움으로 전환되지 않게 합니다. 마우스를 흔들어 두거나 별도 프로그램을 켜둘 필요가 없습니다.",
+  },
   {
     q: "정말 상대방에게 초록불로 보이나요?",
     a: "네. 웹 Slack과 동일한 접속을 유지하는 방식이라 상대방 화면에서 활성으로 표시됩니다.",
@@ -68,9 +79,56 @@ const FAQ = [
   },
 ];
 
+export const metadata = pageMetadata({
+  title: "슬랙 초록불 유지 자동화 — Green Bean",
+  description: DEFAULT_DESCRIPTION,
+  path: "/",
+});
+
+// 구조화 데이터. 구글이 이걸 읽어 검색결과에 FAQ 아코디언·앱 정보(가격 등)를
+// 표시할 수 있다. 네이버도 일부 스키마를 참고한다.
+function StructuredData() {
+  const json = [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "Green Bean",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web, Chrome",
+      url: SITE_URL,
+      description: DEFAULT_DESCRIPTION,
+      inLanguage: "ko-KR",
+      offers: {
+        "@type": "Offer",
+        price: "4900",
+        priceCurrency: "KRW",
+        description: "Pro 월 구독 (14일 무료 체험)",
+        url: `${SITE_URL}/#pricing`,
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: FAQ.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+  ];
+  return (
+    <script
+      type="application/ld+json"
+      // 정적 문자열만 들어가므로 XSS 위험이 없다.
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+    />
+  );
+}
+
 export default function Landing() {
   return (
     <>
+      <StructuredData />
       <header className="container">
         <nav className="nav">
           <div className="brand">
@@ -99,9 +157,9 @@ export default function Landing() {
             Slack은 <span className="hl">계속 초록불</span>
           </h1>
           <p className="lead">
-            PC를 꺼도, 점심을 먹어도, 근무시간 동안 내 Slack 상태를 자동으로
-            활성(초록불)으로 유지합니다. 설정은 딱 한 번, 나머지는 클라우드가
-            대신합니다.
+            PC를 꺼도, 점심을 먹어도 <strong>슬랙 초록불</strong>이 그대로. 근무시간
+            동안 Slack 상태를 자동으로 활성으로 유지하고 자리비움(away) 전환을
+            막습니다. 설정은 딱 한 번, 나머지는 클라우드가 대신합니다.
           </p>
           <div className="cta-row">
             <Link className="btn btn-lg btn-primary" href="/login">

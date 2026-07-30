@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { pageMetadata } from "../../lib/seo.js";
 
-export const metadata = {
-  title: "설치 가이드 — Green Bean",
-  description: "브라우저 확장을 설치하고 Slack 워크스페이스를 연결하는 방법.",
-};
+export const metadata = pageMetadata({
+  title: "설치 가이드",
+  description: "브라우저 확장을 설치하고 Slack 워크스페이스를 연결해 초록불을 유지하는 방법. 3단계, 1분 소요.",
+  path: "/guide",
+});
 
 const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "";
 

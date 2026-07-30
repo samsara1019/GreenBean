@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { pageMetadata } from "../../lib/seo.js";
 
-export const metadata = {
-  title: "개인정보처리방침 — Green Bean",
+export const metadata = pageMetadata({
+  title: "개인정보처리방침",
   description: "Green Bean이 수집·이용·보관하는 정보와 그 처리 방식.",
-};
+  path: "/privacy",
+});
 
 // TODO(prod): 아래 연락처와 사업자 정보를 실제 값으로 교체할 것.
 const CONTACT_EMAIL = "privacy@alwaysgreen.kr";
