@@ -6,7 +6,14 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { Plus_Jakarta_Sans, DM_Sans, Fira_Code } from "next/font/google";
 import "../globals.css";
-import { SITE_URL, SITE_NAME, KEYWORDS, hreflangAlternates, localeUrl } from "../../lib/seo.js";
+import {
+  SITE_URL,
+  SITE_NAME,
+  KEYWORDS,
+  OG_IMAGE,
+  hreflangAlternates,
+  localeUrl,
+} from "../../lib/seo.js";
 import { locales, HTML_LANG, OG_LOCALE } from "../../i18n/routing.js";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -64,11 +71,13 @@ export async function generateMetadata({ params: { locale } }) {
       siteName: SITE_NAME,
       title,
       description,
+      images: [OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [OG_IMAGE.url],
     },
     robots: {
       index: true,
@@ -91,8 +100,12 @@ export default async function LocaleLayout({ children, params: { locale } }) {
   // 이 호출이 있어야 하위 서버 컴포넌트가 정적 렌더에서도 로케일을 안다.
   setRequestLocale(locale);
 
-  // 클라이언트 컴포넌트(로그인·대시보드)도 번역을 쓰므로 메시지를 내려보낸다.
-  const messages = await getMessages();
+  // 클라이언트 컴포넌트에도 번역이 필요하다. 단 전체 카탈로그를 내려보내면
+  // 모든 페이지 HTML에 5개 로케일치 중 하나가 통째로 직렬화돼 실린다 —
+  // 실제로 클라이언트에서 쓰는 네임스페이스만 골라 보낸다.
+  // (언어 선택기 → common, 로그인 화면 → login)
+  const all = await getMessages();
+  const messages = { common: all.common, login: all.login };
 
   return (
     <html
@@ -100,7 +113,10 @@ export default async function LocaleLayout({ children, params: { locale } }) {
       className={`${jakarta.variable} ${dmSans.variable} ${firaCode.variable}`}
     >
       <body>
-        <NextIntlClientProvider messages={messages}>
+        {/* locale 을 반드시 넘긴다. 빼면 클라이언트의 useLocale() 이 컨텍스트에서
+            찾지 못해 useParams() 폴백 경로로 떨어지고, 그 과정에서 정적 렌더가
+            클라이언트 렌더로 bailout 되어 컴포넌트가 서버 HTML에서 사라진다. */}
+        <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
       </body>

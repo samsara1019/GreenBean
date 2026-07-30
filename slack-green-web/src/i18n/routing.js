@@ -63,10 +63,11 @@ export const LOCALE_LABEL = {
   es: "Español (LatAm)",
 };
 
-// 아직 한국어 원문만 있는 페이지(약관·환불·개인정보·블로그). 다른 로케일에서도
-// 렌더는 되지만 canonical 을 한국어 URL로 보내고 noindex 처리한다 —
-// 번역 없이 색인되면 중복 콘텐츠로 평가되고, 법률 문서는 오역 자체가 리스크다.
-export const KO_ONLY_PATHS = ["/terms", "/privacy", "/refund", "/blog"];
+// 아직 한국어 원문만 있는 페이지. 다른 로케일에서도 렌더는 되지만 canonical 을
+// 한국어 URL로 보내고 noindex 처리한다 — 번역 없이 색인되면 중복 콘텐츠로
+// 평가되고, 법률 문서는 오역 자체가 리스크다(어느 판이 유효한지 다툼이 생긴다).
+// 번역을 마친 경로는 이 배열에서 빼면 hreflang·sitemap 이 자동으로 따라온다.
+export const KO_ONLY_PATHS = ["/guide", "/terms", "/privacy", "/refund", "/blog"];
 
 export function isKoOnly(path) {
   return KO_ONLY_PATHS.some((p) => path === p || path.startsWith(`${p}/`));

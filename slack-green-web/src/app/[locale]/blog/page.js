@@ -1,15 +1,22 @@
-import Link from "next/link";
+import { setRequestLocale } from "next-intl/server";
 import { POSTS } from "../../../lib/posts.js";
 import { pageMetadata } from "../../../lib/seo.js";
+import { Link } from "../../../i18n/navigation.js";
+import UntranslatedNotice from "../../../components/untranslated-notice.js";
 
-export const metadata = pageMetadata({
-  title: "슬랙 상태 관리 가이드",
-  description:
-    "슬랙 초록불 유지, 자리비움 해제, 재택근무 상태 관리에 대한 실용 가이드 모음.",
-  path: "/blog",
-});
+export function generateMetadata({ params: { locale } }) {
+  return pageMetadata({
+    locale,
+    title: "슬랙 상태 관리 가이드",
+    description:
+      "슬랙 초록불 유지, 자리비움 해제, 재택근무 상태 관리에 대한 실용 가이드 모음.",
+    path: "/blog",
+  });
+}
 
-export default function BlogIndex() {
+export default function BlogIndex({ params: { locale } }) {
+  setRequestLocale(locale);
+
   return (
     <>
       <header className="container">
@@ -24,6 +31,8 @@ export default function BlogIndex() {
       </header>
 
       <main className="container" style={{ maxWidth: 760 }}>
+        <UntranslatedNotice />
+
         <h1 className="t-h1" style={{ marginBottom: "var(--space-sm)" }}>
           슬랙 상태 관리 가이드
         </h1>

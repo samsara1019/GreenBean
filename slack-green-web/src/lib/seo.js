@@ -18,6 +18,20 @@ export const SITE_URL = (
 
 export const SITE_NAME = "Green Bean";
 
+// 공유 카드 이미지. public/og-image.png 를 절대 URL로 직접 지정한다.
+//
+// ⚠️ opengraph-image.png 파일 컨벤션은 쓰지 않는다. [locale] 동적 세그먼트
+// 아래에서 동작이 일관되지 않았다 — 어떤 라우트는 og:image 가 아예 빠지고
+// (/terms), 어떤 라우트는 존재하지 않는 경로를 가리켰다(/en → /opengraph-image.png).
+// 게다가 파일 컨벤션은 openGraph.images 를 조용히 덮어써서 명시 지정도 무효화한다.
+// 이미지 자체는 로케일별로 다를 게 없으니 정적 파일 하나로 못 박는 게 안전하다.
+export const OG_IMAGE = {
+  url: `${SITE_URL}/og-image.png`,
+  width: 1200,
+  height: 630,
+  type: "image/png",
+};
+
 // 로케일별로 노리는 검색어. **번역이 아니라 그 언어권 사람이 실제로 검색창에
 // 치는 표현**이어야 한다 — 한국어 "초록불"을 영어로 옮긴 "green light" 는
 // 아무도 검색하지 않고, 영어권은 "green dot", 일본어권은 「離席」로 검색한다.
@@ -126,6 +140,10 @@ export function pageMetadata({
   const hidden = noindex || untranslated;
 
   return {
+    // 페이지 단위 metadata 에도 metadataBase 를 다시 심는다. 레이아웃에만 두면
+    // 페이지의 generateMetadata 가 상대 URL을 해석할 때 경고와 함께
+    // localhost 로 떨어지는 경우가 있다.
+    metadataBase: new URL(SITE_URL),
     title,
     description,
     keywords: KEYWORDS[locale] || KEYWORDS[defaultLocale],
@@ -142,6 +160,13 @@ export function pageMetadata({
       siteName: SITE_NAME,
       locale: OG_LOCALE[locale] || OG_LOCALE[defaultLocale],
       type: "website",
+      images: [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [OG_IMAGE.url],
     },
     ...(hidden ? { robots: { index: false, follow: true } } : {}),
   };

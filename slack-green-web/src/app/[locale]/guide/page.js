@@ -2,38 +2,21 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "../../../i18n/navigation.js";
 import UntranslatedNotice from "../../../components/untranslated-notice.js";
 import { pageMetadata } from "../../../lib/seo.js";
+import RequestDevButton from "./RequestDevButton.js";
 
 export function generateMetadata({ params: { locale } }) {
   return pageMetadata({
     locale,
     title: "설치 가이드",
     description:
-      "브라우저 확장을 설치하고 Slack 워크스페이스를 연결해 초록불을 유지하는 방법. 3단계, 1분 소요.",
+      "Slack 워크스페이스를 수동으로 연결해 근무시간에 초록불을 유지하는 방법. (브라우저 확장은 준비 중)",
     path: "/guide",
   });
 }
 
 const EXTENSION_URL = process.env.NEXT_PUBLIC_EXTENSION_URL || "";
 
-const STEPS = [
-  {
-    title: "브라우저 확장 설치",
-    body: "Chrome 웹스토어에서 Green Bean 확장을 설치합니다. Edge·네이버 웨일에서도 그대로 설치됩니다.",
-    cta: true,
-  },
-  {
-    title: "Slack 웹에 로그인",
-    body: "app.slack.com 에 로그인된 상태를 유지하세요. 확장은 이 로그인 세션으로 워크스페이스를 인식합니다.",
-  },
-  {
-    title: "워크스페이스 연결",
-    body: "확장 아이콘을 클릭하면 로그인된 워크스페이스가 표시됩니다. [연결]을 누르면 대시보드에 추가됩니다.",
-  },
-  {
-    title: "근무시간 설정",
-    body: "대시보드에서 요일·시간·타임존을 지정하세요. 그 시간에만 초록불이 유지되고, 그 외에는 자동으로 꺼집니다.",
-  },
-];
+// 확장 기반 4단계 안내(STEPS)는 확장 출시 전까지 숨김. 지금은 수동 연결이 메인.
 
 export default function GuidePage({ params: { locale } }) {
   setRequestLocale(locale);
@@ -55,13 +38,13 @@ export default function GuidePage({ params: { locale } }) {
         <UntranslatedNotice />
 
         <section style={{ paddingBottom: "var(--space-lg)" }}>
-          <span className="chip chip-info">설치 가이드</span>
+          <span className="chip chip-info">연결 가이드</span>
           <h1 className="t-h1" style={{ margin: "var(--space-md) 0" }}>
-            2분이면 초록불이 켜집니다
+            수동으로 바로 연결하기
           </h1>
           <p className="muted" style={{ fontSize: 16 }}>
-            확장을 설치하고 워크스페이스를 연결하면 끝입니다. 관리자 승인이나 앱
-            설치 심사는 필요 없습니다.
+            브라우저 확장(클릭 한 번 연결)은 준비 중입니다. 그동안은 값 두 개만
+            붙여넣으면 바로 연결돼요. 관리자 승인은 필요 없습니다.
           </p>
         </section>
 
@@ -77,40 +60,36 @@ export default function GuidePage({ params: { locale } }) {
               Chrome 웹스토어에서 설치
             </a>
           ) : (
-            <div className="notice">
-              <span aria-hidden="true">🧩</span>
-              <p style={{ margin: 0 }}>
-                <strong>확장 설치 링크 준비 중.</strong> 웹스토어 등록이 완료되면
-                여기에 설치 버튼이 표시됩니다. 개발 중에는 아래{" "}
-                <a href="#dev">개발자 모드 설치</a>를 참고하세요.
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* 단계 */}
-        <section style={{ paddingTop: "var(--space-lg)" }}>
-          <div className="steps">
-            {STEPS.map((s, i) => (
-              <div className="step" key={s.title}>
-                <h3 className="t-h3">
-                  {i + 1}. {s.title}
-                </h3>
-                <p className="muted">{s.body}</p>
-                {s.cta && EXTENSION_URL && (
-                  <a
-                    className="btn btn-secondary btn-sm"
-                    href={EXTENSION_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ marginTop: "var(--space-sm)" }}
-                  >
-                    설치 페이지 열기
-                  </a>
-                )}
+            <>
+              <div className="notice">
+                <span aria-hidden="true">🧩</span>
+                <p style={{ margin: 0 }}>
+                  <strong>브라우저 확장(클릭 한 번 연결)은 준비 중이에요.</strong>{" "}
+                  지금은 아래 방법으로 <strong>수동 연결</strong>하면 바로 사용할 수
+                  있습니다.
+                </p>
               </div>
-            ))}
-          </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "var(--space-sm)",
+                  flexWrap: "wrap",
+                  marginTop: "var(--space-md)",
+                }}
+              >
+                <Link
+                  className="btn btn-lg btn-primary"
+                  href="/dashboard?connect=1"
+                >
+                  워크스페이스 연결하러 가기 →
+                </Link>
+                <a className="btn btn-lg btn-secondary" href="#manual">
+                  연결 방법 자세히 보기
+                </a>
+              </div>
+              <RequestDevButton />
+            </>
+          )}
         </section>
 
         {/* 개발자 모드 설치 (웹스토어 등록 전) */}

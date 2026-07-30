@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { POSTS, getPost } from "../../../../lib/posts.js";
-import { SITE_URL, SITE_NAME, pageMetadata } from "../../../../lib/seo.js";
+import {
+  SITE_URL,
+  SITE_NAME,
+  OG_IMAGE,
+  pageMetadata,
+} from "../../../../lib/seo.js";
 import { Link } from "../../../../i18n/navigation.js";
 import UntranslatedNotice from "../../../../components/untranslated-notice.js";
 
@@ -33,6 +38,8 @@ export function generateMetadata({ params: { locale, slug } }) {
       locale: "ko_KR",
       type: "article",
       publishedTime: post.date,
+      // openGraph 를 통째로 덮어쓰므로 이미지도 다시 넣어야 한다.
+      images: [OG_IMAGE],
     },
   };
 }
@@ -128,6 +135,8 @@ export default function PostPage({ params: { locale, slug } }) {
       </header>
 
       <main className="container legal" style={{ maxWidth: 760 }}>
+        <UntranslatedNotice />
+
         <p className="t-caption muted" style={{ marginBottom: 8 }}>
           <Link href="/blog">가이드</Link> · {post.date}
         </p>

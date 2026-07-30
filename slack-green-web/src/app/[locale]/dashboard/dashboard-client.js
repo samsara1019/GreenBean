@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
+// ⚠️ 로케일을 유지하는 Link·useRouter. next/link 를 쓰면 /en/dashboard 에서
+// 누른 링크가 한국어 페이지로 떨어진다.
+// (대시보드 UI 문자열 자체는 아직 한국어다 — TODO: dashboard 번역)
+import { Link, useRouter } from "../../../i18n/navigation.js";
+import { defaultLocale } from "../../../i18n/routing.js";
 
 // Groble 결제 페이지. 구독 버튼이 ?ref=<userId> 를 붙여 이 링크로 보낸다.
 // 활성화는 Groble 웹훅(/api/webhooks/groble)이 sellerReference 로 처리한다.
@@ -11,6 +15,11 @@ const PAYMENT_URL = process.env.NEXT_PUBLIC_PAYMENT_URL;
 // 정기결제 해지 페이지(Groble 구매내역 등). 미설정이면 결제 페이지로 보낸다.
 // 정기결제는 사용자가 스스로 해지할 수단 제공이 필수다.
 const CANCEL_URL = process.env.NEXT_PUBLIC_CANCEL_URL;
+
+// 한시 무료 정책. 해외 결제 준비 전까지는 결제 페이지로 보내지 않고
+// /api/subscription/free-upgrade 로 바로 Pro를 부여한다. 정책이 끝나면 이 값을
+// 내리면 결제 흐름(Groble)이 그대로 살아난다.
+const FREE_PRO = process.env.NEXT_PUBLIC_FREE_PRO === "1";
 
 const DAYS = [
   { v: 1, l: "월" },
@@ -41,6 +50,9 @@ const STATUS_CHIP = {
 
 export default function DashboardClient({ email, devFallback }) {
   const router = useRouter();
+  const locale = useLocale();
+  // next 파라미터에 넣을 로케일 접두사. 기본 로케일은 접두사가 없다.
+  const prefix = locale === defaultLocale ? "" : `/${locale}`;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -57,7 +69,7 @@ export default function DashboardClient({ email, devFallback }) {
     // no-store: 브라우저가 구독/연결 GET을 캐싱해 옛 D-day가 굳는 것 방지.
     const res = await fetch(url, { cache: "no-store", ...init });
     if (res.status === 401) {
-      router.push("/login?next=/dashboard");
+      router.push(`/login?next=${prefix}/dashboard`);
       return null;
     }
     return res;
@@ -81,12 +93,37 @@ export default function DashboardClient({ email, devFallback }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 가이드의 "연결하러 가기"(/dashboard?connect=1) 로 오면 연결 폼을 바로 연다.
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("connect") === "1"
+    ) {
+      setShowForm(true);
+    }
+  }, []);
+
   // 결제는 Groble 결제 페이지에서 진행한다. 앱 안에는 상태를 바꾸는 결제 API가 없고
   // (있으면 무인증으로 Pro를 켤 수 있다), Groble 웹훅이 구독을 활성화한다.
   //
   // ?ref=<userId> 가 핵심이다: 이 값이 웹훅의 sellerReference 로 돌아오므로 결제
   // 이메일이 가입 이메일과 달라도 정확히 이 계정에 적용된다.
-  function subscribe() {
+  async function subscribe() {
+    // 무료 정책 기간: 결제 없이 바로 Pro. 서버도 같은 플래그로 게이트한다.
+    if (FREE_PRO) {
+      setSubBusy(true);
+      const res = await getJson("/api/subscription/free-upgrade", { method: "POST" });
+      setSubBusy(false);
+      if (!res) return;
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert("전환에 실패했습니다: " + (d.error || res.status));
+        return;
+      }
+      refresh();
+      return;
+    }
+
     if (!PAYMENT_URL) {
       alert("결제 페이지가 아직 설정되지 않았습니다. 잠시 후 다시 시도해 주세요.");
       return;
@@ -190,11 +227,26 @@ export default function DashboardClient({ email, devFallback }) {
         <div className="empty">
           아직 연결된 워크스페이스가 없습니다.
           <br />
-          <strong>브라우저 확장</strong>을 설치하면 클릭 한 번에 연결됩니다.
-          <div style={{ marginTop: 16 }}>
-            <a className="btn btn-primary btn-sm" href="/guide">
-              설치 가이드 보기
-            </a>
+          지금은 <strong>수동 연결</strong>로 워크스페이스를 추가할 수 있어요.
+          (브라우저 확장은 준비 중)
+          <div
+            style={{
+              marginTop: 16,
+              display: "flex",
+              gap: 8,
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowForm(true)}
+            >
+              워크스페이스 연결하기
+            </button>
+            <Link className="btn btn-secondary btn-sm" href="/guide">
+              연결 가이드 보기
+            </Link>
           </div>
         </div>
       ) : (
@@ -285,23 +337,35 @@ function SubBanner({ sub, busy, onSubscribe }) {
             <span className="dot" /> Pro 구독 중
           </div>
           <div className="b-sub">
-            다음 결제일{" "}
-            <span className="mono">{fmtDate(sub.currentPeriodEnd)}</span> · 월 ₩
-            {sub.priceKrw.toLocaleString()} 자동 갱신
+            {FREE_PRO ? (
+              <>
+                무료 제공 중 ·{" "}
+                <span className="mono">{fmtDate(sub.currentPeriodEnd)}</span>까지
+              </>
+            ) : (
+              <>
+                다음 결제일{" "}
+                <span className="mono">{fmtDate(sub.currentPeriodEnd)}</span> · 월 ₩
+                {sub.priceKrw.toLocaleString()} 자동 갱신
+              </>
+            )}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span className="chip chip-success">구독중</span>
+          <span className="chip chip-success">{FREE_PRO ? "무료 Pro" : "구독중"}</span>
           {/* 정기결제는 사용자가 스스로 해지할 수단이 있어야 한다. 결제·해지는
-              Groble이 관리하므로 그쪽으로 보낸다. */}
-          <a
-            className="btn btn-ghost"
-            href={CANCEL_URL || PAYMENT_URL || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            해지
-          </a>
+              Groble이 관리하므로 그쪽으로 보낸다.
+              무료 정책 기간에는 결제가 없으니 해지할 대상도 없다. */}
+          {!FREE_PRO && (
+            <a
+              className="btn btn-ghost"
+              href={CANCEL_URL || PAYMENT_URL || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              해지
+            </a>
+          )}
         </div>
       </div>
     );
@@ -315,8 +379,10 @@ function SubBanner({ sub, busy, onSubscribe }) {
             무료 체험 <span className="dday">D-{sub.daysLeft}</span>
           </div>
           <div className="b-sub">
-            <span className="mono">{fmtDate(sub.trialEndsAt)}</span>에
-            종료됩니다. 이후에도 초록불을 유지하려면 구독하세요.
+            <span className="mono">{fmtDate(sub.trialEndsAt)}</span>에 종료됩니다.
+            {FREE_PRO
+              ? " 지금은 무료로 Pro로 전환할 수 있습니다."
+              : " 이후에도 초록불을 유지하려면 구독하세요."}
           </div>
         </div>
         <button
@@ -324,7 +390,11 @@ function SubBanner({ sub, busy, onSubscribe }) {
           onClick={onSubscribe}
           disabled={busy}
         >
-          {busy ? "처리 중…" : `Pro 구독 (₩${sub.priceKrw.toLocaleString()}/월)`}
+          {busy
+            ? "처리 중…"
+            : FREE_PRO
+              ? "무료로 Pro 전환"
+              : `Pro 구독 (₩${sub.priceKrw.toLocaleString()}/월)`}
         </button>
       </div>
     );
@@ -339,13 +409,17 @@ function SubBanner({ sub, busy, onSubscribe }) {
             : "체험이 종료되었습니다"}
         </div>
         <div className="b-sub">
-          구독하기 전까지 모든 워크스페이스의 상태 유지가 중지됩니다.
+          {FREE_PRO
+            ? "지금은 무료로 다시 켤 수 있습니다. 버튼을 눌러주세요."
+            : "구독하기 전까지 모든 워크스페이스의 상태 유지가 중지됩니다."}
         </div>
       </div>
       <button className="btn btn-primary" onClick={onSubscribe} disabled={busy}>
         {busy
           ? "처리 중…"
-          : `구독하고 다시 켜기 (₩${sub.priceKrw.toLocaleString()}/월)`}
+          : FREE_PRO
+            ? "무료로 Pro 켜기"
+            : `구독하고 다시 켜기 (₩${sub.priceKrw.toLocaleString()}/월)`}
       </button>
     </div>
   );
@@ -429,7 +503,7 @@ function AddForm({ onCreated }) {
           placeholder="xoxc-..."
         />
         <div className="helper">
-          Phase 2 브라우저 확장이 자동으로 입력할 예정입니다.
+          값 얻는 방법은 <Link href="/guide#manual">연결 가이드</Link>를 참고하세요.
         </div>
       </div>
 
