@@ -19,7 +19,7 @@ import {
   grantProMonth,
 } from "../../../../lib/db.js";
 import { isEntitled, summarize } from "../../../../lib/entitlement.js";
-import { notifySlack } from "../../../../lib/notify.js";
+import { notifySlack } from "../../../../lib/slackNotify.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
