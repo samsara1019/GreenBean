@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "../../../i18n/navigation.js";
 import { defaultLocale } from "../../../i18n/routing.js";
@@ -10,31 +9,33 @@ import {
   createBrowserSupabase,
 } from "../../../lib/supabase-browser.js";
 
+// ⚠️ useSearchParams() 를 쓰지 않는다. 그 훅은 정적 렌더에서 Suspense 경계를
+//요구해 카드 전체가 서버 HTML에서 빠지고(첫 페인트에 빈 화면), 로그인은
+// 전환의 마지막 단계라 그 깜빡임의 대가가 크다. 쿼리스트링은 마운트 후
+// window.location 에서 읽는다 — SSR 초기값과 일치하므로 하이드레이션도 안전하다.
 export default function LoginClient() {
-  return (
-    <Suspense fallback={null}>
-      <LoginCard />
-    </Suspense>
-  );
-}
-
-function LoginCard() {
   const t = useTranslations("login");
   const locale = useLocale();
-  const params = useSearchParams();
   // ⚠️ next 는 OAuth 콜백이 최종적으로 보내줄 경로다. 로케일 접두사가 빠지면
   // 영어로 가입한 사용자가 한국어 대시보드로 떨어진다.
   const prefix = locale === defaultLocale ? "" : `/${locale}`;
-  const next = params.get("next") || `${prefix}/dashboard`;
-  const [err, setErr] = useState(params.get("error") || "");
+  const [next, setNext] = useState(null);
+  const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setNext(params.get("next"));
+    setErr(params.get("error") || "");
+  }, []);
 
   async function signInWithGoogle() {
     setBusy(true);
     setErr("");
     try {
       const supabase = createBrowserSupabase();
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+      const target = next || `${prefix}/dashboard`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(target)}`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo },

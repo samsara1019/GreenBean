@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { businessLine, contactLine } from "../../lib/business.js";
 import { localeUrl, pageMetadata } from "../../lib/seo.js";
 import { Link } from "../../i18n/navigation.js";
+import { HTML_LANG } from "../../i18n/routing.js";
 import LocaleSwitcher from "../../components/locale-switcher.js";
 
 // 메시지 키 목록. 카드 6개·스텝 3개·FAQ 6개를 배열로 돌려 JSX 중복을 없앤다.
@@ -16,6 +17,10 @@ const FEATURE_ICON = {
   multi: "🏢",
 };
 const STEPS = ["connect", "schedule", "run"];
+// 한시 무료 정책 플래그(대시보드와 같은 값). 켜져 있으면 가격 카드에 무료 배지를
+// 붙이고 결제 안내를 무료 안내로 바꾼다.
+const FREE_PRO = process.env.NEXT_PUBLIC_FREE_PRO === "1";
+
 const FAQ_KEYS = ["q1", "q2", "q3", "q4", "q5", "q6"];
 
 export async function generateMetadata({ params: { locale } }) {
@@ -42,7 +47,7 @@ function StructuredData({ locale, t, tFaq }) {
       operatingSystem: "Web, Chrome",
       url: localeUrl(locale, "/"),
       description: t("meta.description"),
-      inLanguage: locale,
+      inLanguage: HTML_LANG[locale],
       offers: {
         "@type": "Offer",
         price: "4900",
@@ -54,7 +59,7 @@ function StructuredData({ locale, t, tFaq }) {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      inLanguage: locale,
+      inLanguage: HTML_LANG[locale],
       mainEntity: FAQ_KEYS.map((k) => ({
         "@type": "Question",
         name: tFaq(`${k}.q`),
@@ -188,6 +193,13 @@ export default async function Landing({ params: { locale } }) {
             <div className="price featured">
               <div className="price-head">
                 <span className="chip">{t("pricing.pro.chip")}</span>
+                {/* 한시 무료 정책 중에는 가격만 보이면 이탈 요인이 된다 —
+                    지금 결제 없이 쓸 수 있다는 사실을 가격 옆에 붙인다. */}
+                {FREE_PRO && (
+                  <span className="chip chip-success">
+                    {t("pricing.freeNow.badge")}
+                  </span>
+                )}
               </div>
               <div className="price-body">
                 <div className="amt">
@@ -195,7 +207,7 @@ export default async function Landing({ params: { locale } }) {
                   <span className="per">{t("pricing.pro.per")}</span>
                 </div>
                 <p className="muted" style={{ margin: 0 }}>
-                  {t("pricing.pro.note")}
+                  {FREE_PRO ? t("pricing.freeNow.note") : t("pricing.pro.note")}
                 </p>
                 <ul>
                   <li>{t("pricing.pro.f1")}</li>
@@ -210,10 +222,14 @@ export default async function Landing({ params: { locale } }) {
             </div>
           </div>
 
-          {/* 결제 안내 — 결제 전에 보여야 한다. */}
+          {/* 결제(또는 무료 정책) 안내 — 가입 전에 보여야 한다. */}
           <div className="notice" style={{ marginTop: 20 }}>
-            <span aria-hidden="true">💳</span>
-            <p style={{ margin: 0 }}>{t.rich("pricing.payment", bold)}</p>
+            <span aria-hidden="true">{FREE_PRO ? "🎁" : "💳"}</span>
+            <p style={{ margin: 0 }}>
+              {FREE_PRO
+                ? t.rich("pricing.freeNow.notice", bold)
+                : t.rich("pricing.payment", bold)}
+            </p>
           </div>
         </section>
 

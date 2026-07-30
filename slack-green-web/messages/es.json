@@ -106,7 +106,12 @@
         "f3": "Alertas de desconexión",
         "f4": "Se renueva cada mes · cancela cuando quieras"
       },
-      "payment": "<b>Sobre el pago.</b> Pro se cobra a través de nuestro procesador de pagos (Groble), por ahora en wones surcoreanos. Si te suscribes con el botón del panel, tu cuenta se vincula automáticamente y Pro se activa <b>en pocos minutos</b> tras la confirmación. La renovación es mensual y puedes cancelar desde el panel en cualquier momento."
+      "payment": "<b>Sobre el pago.</b> Pro se cobra a través de nuestro procesador de pagos (Groble), por ahora en wones surcoreanos. Si te suscribes con el botón del panel, tu cuenta se vincula automáticamente y Pro se activa <b>en pocos minutos</b> tras la confirmación. La renovación es mensual y puedes cancelar desde el panel en cualquier momento.",
+      "freeNow": {
+        "badge": "Gratis ahora",
+        "note": "Pago internacional en preparacion · gratis por ahora",
+        "notice": "<b>Ahora es gratis.</b> Hasta que el pago internacional este listo, las funciones Pro estan disponibles sin costo. Un clic en el panel lo activa y no hace falta registrar tarjeta. Avisaremos antes de empezar a cobrar."
+      }
     },
     "disclaimer": "<b>Ten en cuenta.</b> Green Bean es una herramienta independiente de terceros, sin relación con Slack Technologies. Mantener la presencia de forma automática puede estar restringido por la política de tu espacio de trabajo o por los términos de servicio de Slack, y cualquier medida sobre tu cuenta es responsabilidad tuya. Las credenciales se almacenan cifradas y no accedemos al contenido de los mensajes.",
     "faq": {

@@ -106,7 +106,12 @@
         "f3": "Disconnection alerts",
         "f4": "Renews monthly · cancel anytime"
       },
-      "payment": "<b>About payment.</b> Pro is billed through our payment provider (Groble), currently in Korean won. Subscribe from the dashboard button and your account links automatically — Pro switches on within a few minutes of confirmation. It renews monthly and you can cancel from the dashboard at any time."
+      "payment": "<b>About payment.</b> Pro is billed through our payment provider (Groble), currently in Korean won. Subscribe from the dashboard button and your account links automatically — Pro switches on within a few minutes of confirmation. It renews monthly and you can cancel from the dashboard at any time.",
+      "freeNow": {
+        "badge": "Free right now",
+        "note": "International payments coming soon · free for now",
+        "notice": "<b>It's free right now.</b> Until international payments are ready, Pro features are available at no cost. One click in the dashboard switches you over — no card required. We'll announce well before paid plans begin."
+      }
     },
     "disclaimer": "<b>Please note.</b> Green Bean is an independent third-party tool, not affiliated with Slack Technologies. Automated presence may be restricted by your workspace policy or Slack's terms of service, and you are responsible for any action taken against your account. Credentials are stored encrypted and we do not access message content.",
     "faq": {

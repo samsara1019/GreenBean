@@ -486,6 +486,12 @@ section {
 .price .price-head {
   padding: var(--space-md) var(--space-lg);
   border-bottom: 1px solid var(--divider);
+  /* 칩이 두 개 이상 올 수 있다(예: Pro + 무료 제공 중). JSX는 줄바꿈 공백을
+     지우므로 간격을 CSS로 줘야 칩이 붙어 보이지 않는다. */
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
 }
 .price.featured {
   border-color: transparent;
