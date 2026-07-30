@@ -138,6 +138,9 @@ export default function Landing() {
             <a className="btn btn-ghost" href="#pricing">
               가격
             </a>
+            <Link className="btn btn-ghost" href="/blog">
+              가이드
+            </Link>
             <Link className="btn btn-primary" href="/login">
               시작하기
             </Link>
@@ -299,6 +302,7 @@ export default function Landing() {
       <footer>
         <div className="container">
           <div style={{ marginBottom: 8 }}>
+            <Link href="/blog">슬랙 상태 가이드</Link> ·{" "}
             <Link href="/guide">설치 가이드</Link> ·{" "}
             <Link href="/terms">이용약관</Link> ·{" "}
             <Link href="/refund">환불정책</Link> ·{" "}
