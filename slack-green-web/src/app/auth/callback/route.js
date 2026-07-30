@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createRouteSupabase, AUTH_CONFIGURED } from "../../../lib/supabase-auth.js";
 import { getOrCreateSubscription } from "../../../lib/db.js";
+import { notifySlack } from "../../../lib/slackNotify.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,9 +39,19 @@ export async function GET(request) {
   // 가입(=첫 로그인) 시점에 체험 시작. 이미 row가 있으면 그대로 반환되므로
   // 재로그인해도 체험 기간이 리셋되지 않는다.
   const userId = data?.user?.id;
+  const email = data?.user?.email || "(이메일 없음)";
   if (userId) {
     try {
-      await getOrCreateSubscription(userId);
+      // onCreate 는 신규 가입(구독 row 최초 생성) 때만 실행 → 그때만 Slack 알림.
+      await getOrCreateSubscription(userId, () =>
+        notifySlack(
+          [
+            "🎉 *새 가입* 이 들어왔어요!",
+            `• email: ${email}`,
+            "• plan: 14일 무료 체험 시작",
+          ].join("\n")
+        )
+      );
     } catch (e) {
       // 체험 row 생성 실패가 로그인 자체를 막지는 않게 한다.
       // 대시보드의 /api/subscription 이 다음 요청에서 다시 시도한다.

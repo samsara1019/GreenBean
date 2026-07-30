@@ -12,9 +12,14 @@
 // 게이트를 명시적으로 둔다.
 
 import { NextResponse } from "next/server";
-import { requireUserId } from "../../../../lib/auth.js";
-import { getOrCreateSubscription, grantProMonth } from "../../../../lib/db.js";
+import { getUser, requireUserId } from "../../../../lib/auth.js";
+import {
+  countActivePro,
+  getOrCreateSubscription,
+  grantProMonth,
+} from "../../../../lib/db.js";
 import { isEntitled, summarize } from "../../../../lib/entitlement.js";
+import { notifySlack } from "../../../../lib/notify.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +47,25 @@ export async function POST() {
   const end = new Date(Date.now() + FREE_PRO_DAYS * 86_400_000);
   const updated = await grantProMonth(userId, { periodEndIso: end.toISOString() });
   console.log(`[free-pro] ${userId} → active until ${end.toISOString()} (${FREE_PRO_DAYS}일)`);
+
+  // 운영 알림. 실패해도 전환은 이미 끝났으므로 응답에 영향을 주지 않는다.
+  // (notifySlack 자체가 예외를 먹지만, 이메일/집계 조회 실패까지 감싼다.)
+  try {
+    const user = await getUser();
+    const total = await countActivePro();
+    await notifySlack(
+      [
+        "🎁 *무료 Pro 전환*",
+        `• 계정: ${user?.email || userId}`,
+        `• 기간: ${FREE_PRO_DAYS}일 (만료 ${end.toISOString().slice(0, 10)})`,
+        total != null ? `• 현재 활성 Pro: ${total}명` : null,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    );
+  } catch (e) {
+    console.error("[free-pro] 알림 실패(무시):", e.message);
+  }
 
   return NextResponse.json({ ...summarize(updated), userId, granted: true });
 }

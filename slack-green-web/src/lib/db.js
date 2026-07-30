@@ -246,7 +246,9 @@ export async function recordInterest({ email, source, userAgent }) {
 /* ---------------- Subscriptions ---------------- */
 
 // 사용자의 구독 정보를 반환한다. 없으면 14일 체험을 자동 생성한다(첫 진입 = 체험 시작).
-export async function getOrCreateSubscription(userId) {
+// onCreate: 구독 row가 "처음 생성"될 때(=신규 가입)만 호출된다. 기존 사용자면 호출 X.
+// 신규 가입 Slack 알림 등을 여기에 건다. 실패해도 가입 자체는 막지 않는다.
+export async function getOrCreateSubscription(userId, onCreate) {
   if (USE_SUPABASE) {
     const { data, error } = await supabase
       .from("subscriptions")
@@ -262,6 +264,11 @@ export async function getOrCreateSubscription(userId) {
       .select()
       .single();
     if (insErr) throw insErr;
+    if (onCreate) {
+      try {
+        await onCreate(created);
+      } catch {}
+    }
     return created;
   }
   // file mode
@@ -271,6 +278,11 @@ export async function getOrCreateSubscription(userId) {
     sub = { user_id: userId, ...newTrial() };
     subs.push(sub);
     await subsWriteAll(subs);
+    if (onCreate) {
+      try {
+        await onCreate(sub);
+      } catch {}
+    }
   }
   return sub;
 }
@@ -422,6 +434,21 @@ export async function grantProMonth(userId, { periodEndIso } = {}) {
     status: "active",
     current_period_end: end.toISOString(),
   });
+}
+
+// 현재 유료(active) 구독 수. 운영 알림에 "누적 몇 명" 을 붙이는 용도.
+// 정확한 과금 지표가 아니라 감각용이므로 status 만 본다.
+export async function countActivePro() {
+  if (USE_SUPABASE) {
+    const { count, error } = await supabase
+      .from("subscriptions")
+      .select("user_id", { count: "exact", head: true })
+      .eq("status", "active");
+    if (error) throw error;
+    return count ?? null;
+  }
+  const subs = await subsReadAll();
+  return subs.filter((s) => s.status === "active").length;
 }
 
 // 구독 row를 조회한다(없으면 만들지 않고 null). 웹훅이 넘겨준 참조값(user_id)이
