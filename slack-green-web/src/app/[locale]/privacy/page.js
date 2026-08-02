@@ -133,6 +133,12 @@ export default function PrivacyPage({ params: { locale } }) {
           정보가 <strong>모두 즉시 파기</strong>되며 복구할 수 없습니다. 탈퇴 즉시
           모든 워크스페이스의 상태 유지가 중지됩니다.
         </p>
+        <p>
+          다만 저장된 Slack 자격증명이 파기되는 것은 <strong>서비스 서버 내에서</strong>
+          이며, Slack 계정의 토큰 자체가 무효화되지는 않습니다. 자격증명을 완전히
+          만료시키려면 Slack 계정 설정에서 &ldquo;모든 세션에서 로그아웃&rdquo;을
+          함께 실행하시기 바랍니다.
+        </p>
 
         <h2 className="t-h2">8. 이용자의 권리</h2>
         <p>

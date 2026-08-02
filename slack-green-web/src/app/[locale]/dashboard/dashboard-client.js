@@ -390,6 +390,21 @@ function DangerZone({ busy, onLeave }) {
             탈퇴 즉시 모든 워크스페이스의 초록불 유지가 중지됩니다. 남은 이용
             기간이 있어도 환불되지 않습니다.
           </p>
+          <div className="notice" style={{ marginBottom: "var(--space-md)" }}>
+            <span aria-hidden="true">🔑</span>
+            <p style={{ margin: 0, fontSize: 13 }}>
+              탈퇴하면 저장된 자격증명은 <strong>저희 서버에서</strong> 삭제되지만,
+              Slack 쪽 토큰 자체가 무효화되지는 않습니다. 완전히 정리하시려면 Slack{" "}
+              <a
+                href="https://my.slack.com/account/settings"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                계정 설정
+              </a>
+              에서 <strong>모든 세션에서 로그아웃</strong>을 함께 실행해 주세요.
+            </p>
+          </div>
           <button
             className="btn btn-destructive"
             onClick={onLeave}
