@@ -23,7 +23,7 @@ export async function POST(request) {
   // Slack 알림 (webhook 미설정이면 조용히 skip). 서버리스에서 확실히 보내도록 await.
   await notifySlack(
     [
-      "🙋 *정식 개발 요청* 이 들어왔어요!",
+      ":raising_hand: *정식 개발 요청* 이 들어왔어요!",
       `• source: ${source}`,
       `• email: ${email || "(미입력)"}`,
       count != null ? `• 누적: ${count}건` : null,

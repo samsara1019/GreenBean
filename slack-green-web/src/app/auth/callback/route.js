@@ -46,7 +46,7 @@ export async function GET(request) {
       await getOrCreateSubscription(userId, () =>
         notifySlack(
           [
-            "🎉 *새 가입* 이 들어왔어요!",
+            ":tada: *새 가입* 이 들어왔어요!",
             `• email: ${email}`,
             "• plan: 14일 무료 체험 시작",
           ].join("\n")
