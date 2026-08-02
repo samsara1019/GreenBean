@@ -209,6 +209,62 @@ export async function deleteConnection(userId, id) {
   await fileWriteAll(rows.filter((r) => !(r.id === id && r.user_id === userId)));
 }
 
+/* ---------------- 회원 탈퇴 ---------------- */
+
+// 계정과 관련 데이터를 전부 지운다.
+//
+// 개인정보처리방침이 "계정 삭제를 요청하면 관련 개인정보를 모두 파기한다"고
+// 약속하고 있으므로 실제로 전부 지운다 — 연결(암호화된 Slack 자격증명), 구독,
+// 결제 이벤트 기록, 개발 요청 기록, 그리고 Auth 사용자까지.
+//
+// ⚠️ 유료 결제를 실제로 받기 시작하면 전자상거래법상 대금결제·재화공급 기록은
+// 5년 보존 의무가 생긴다. 그때는 payment_events 를 지우는 대신 보존 기간을
+// 개인정보처리방침에 명시하는 쪽으로 바꿔야 한다.
+export async function deleteAccount(userId, email) {
+  const deleted = {};
+
+  if (USE_SUPABASE) {
+    const del = async (table, column, value) => {
+      const { data, error } = await supabase
+        .from(table)
+        .delete()
+        .eq(column, value)
+        .select("*", { head: false, count: "exact" });
+      if (error) throw error;
+      return data?.length ?? 0;
+    };
+
+    deleted.connections = await del("connections", "user_id", userId);
+    deleted.subscriptions = await del("subscriptions", "user_id", userId);
+    deleted.paymentEvents = await del("payment_events", "user_id", userId);
+    if (email) {
+      // 결제 이벤트는 매칭 실패 시 user_id 없이 email 만 남아 있을 수 있다.
+      deleted.paymentEvents += await del("payment_events", "email", email);
+      deleted.devRequests = await del("dev_requests", "email", email);
+    }
+
+    // 마지막으로 Auth 사용자 삭제. 이걸 지워야 같은 이메일로 다시 가입할 때
+    // 새 계정(=새 user_id)으로 시작한다. service_role 키가 있어야 호출된다.
+    const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
+    if (authErr) throw authErr;
+    deleted.authUser = 1;
+    return deleted;
+  }
+
+  // file mode (로컬 개발)
+  const conns = await fileReadAll();
+  const keptConns = conns.filter((r) => r.user_id !== userId);
+  deleted.connections = conns.length - keptConns.length;
+  await fileWriteAll(keptConns);
+
+  const subs = await subsReadAll();
+  const keptSubs = subs.filter((s) => s.user_id !== userId);
+  deleted.subscriptions = subs.length - keptSubs.length;
+  await subsWriteAll(keptSubs);
+
+  return deleted;
+}
+
 /* ---------------- Dev interest (수요 검증) ---------------- */
 
 // "정식 개발 요청" 클릭을 기록하고 누적 건수를 반환한다. 로그인 불필요(공개).

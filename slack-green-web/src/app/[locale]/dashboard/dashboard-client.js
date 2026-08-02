@@ -59,6 +59,7 @@ export default function DashboardClient({ email, devFallback }) {
   const [sub, setSub] = useState(null);
   const [subBusy, setSubBusy] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [leaving, setLeaving] = useState(false);
 
   // 플랜별 워크스페이스 한도 (구독 로드 후 확정). Free 1 / Pro 3.
   const maxConn = sub?.maxConnections;
@@ -139,6 +140,34 @@ export default function DashboardClient({ email, devFallback }) {
       }
     }
     window.open(href, "_blank", "noopener,noreferrer");
+  }
+
+  // 회원 탈퇴. 되돌릴 수 없으므로 확인 문구를 정확히 입력받는다 — confirm 한 번은
+  // 습관적으로 눌러버린다.
+  async function leaveService() {
+    const typed = window.prompt(
+      "정말 탈퇴하시겠습니까?\n\n" +
+        "연결된 워크스페이스와 저장된 Slack 자격증명, 계정이 모두 삭제되며 되돌릴 수 없습니다.\n" +
+        '계속하려면 "탈퇴"를 입력해 주세요.'
+    );
+    if (typed === null) return; // 취소
+    if (typed.trim() !== "탈퇴") {
+      alert("입력이 일치하지 않아 취소했습니다.");
+      return;
+    }
+
+    setLeaving(true);
+    const res = await getJson("/api/account", { method: "DELETE" });
+    setLeaving(false);
+    if (!res) return;
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert("탈퇴에 실패했습니다: " + (d.error || res.status));
+      return;
+    }
+    alert("탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.");
+    // 클라이언트 상태(연결 목록 등)가 남지 않도록 라우터 이동 대신 전체 이동.
+    window.location.href = "/";
   }
 
   async function toggle(item) {
@@ -323,6 +352,53 @@ export default function DashboardClient({ email, devFallback }) {
         상태는 워커가 실제로 Slack에 연결되면 갱신됩니다. 토큰은 암호화되어
         저장되며 화면에는 일부만 표시됩니다.
       </p>
+
+      {!devFallback && <DangerZone busy={leaving} onLeave={leaveService} />}
+    </div>
+  );
+}
+
+// 되돌릴 수 없는 작업 구역. 실수로 누르기 어렵게 접어두고, 확인도 문구 입력으로 받는다.
+function DangerZone({ busy, onLeave }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className="card"
+      style={{ marginTop: 32, padding: "var(--space-lg)", borderColor: "var(--error)" }}
+    >
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        onClick={() => setOpen((v) => !v)}
+        style={{ padding: 0 }}
+      >
+        {open ? "▾" : "▸"} 회원 탈퇴
+      </button>
+
+      {open && (
+        <div style={{ marginTop: "var(--space-md)" }}>
+          <p className="muted" style={{ marginTop: 0 }}>
+            탈퇴하면 아래 데이터가 <strong>즉시 삭제되며 되돌릴 수 없습니다.</strong>
+          </p>
+          <ul className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+            <li>연결된 워크스페이스와 저장된 Slack 자격증명 전부</li>
+            <li>구독·이용 기록</li>
+            <li>계정 자체 (같은 이메일로 다시 가입하면 새 계정이 됩니다)</li>
+          </ul>
+          <p className="muted" style={{ fontSize: 13 }}>
+            탈퇴 즉시 모든 워크스페이스의 초록불 유지가 중지됩니다. 남은 이용
+            기간이 있어도 환불되지 않습니다.
+          </p>
+          <button
+            className="btn btn-destructive"
+            onClick={onLeave}
+            disabled={busy}
+          >
+            {busy ? "처리 중…" : "탈퇴하기"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
