@@ -5,7 +5,12 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { Plus_Jakarta_Sans, DM_Sans, Fira_Code } from "next/font/google";
+import Script from "next/script";
 import "../globals.css";
+
+// Google Analytics 4 측정 ID. 공개값이라 클라이언트 HTML 노출이 정상.
+// 로컬 개발 트래픽이 섞이지 않게 프로덕션에서만 로드한다.
+const GA_ID = "G-V7BZ3YGFFE";
 import {
   SITE_URL,
   SITE_NAME,
@@ -119,6 +124,23 @@ export default async function LocaleLayout({ children, params: { locale } }) {
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
+
+        {/* Google Analytics 4 — 프로덕션에서만. GA4 향상된 측정이 SPA 페이지뷰
+            (History API)까지 자동 집계하므로 라우트 변경 수동 처리는 불필요. */}
+        {process.env.NODE_ENV === "production" && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );
